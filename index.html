@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Location Access</title>
@@ -70,7 +71,12 @@
     const result = document.getElementById("result");
 
     allowButton.addEventListener("click", () => {
-
+const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+      const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
       if (!navigator.geolocation) {
         result.innerHTML = "Geolocation is not supported by your browser.";
         return;
@@ -80,11 +86,26 @@
 
       navigator.geolocation.getCurrentPosition(
 
-        function(position) {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
+        async function(position) {
+  const latitude = position.coords.latitude;
+  const longitude = position.coords.longitude;
 
-result.innerHTML = `
+  const { data, error } = await supabase
+    .from("locations")
+    .insert([
+      {
+        latitude: latitude,
+        longitude: longitude
+      }
+    ]);
+
+  if (error) {
+    result.innerHTML = "Could not save location.";
+    console.error(error);
+    return;
+  }
+
+  result.innerHTML = `
   <h3>Location received ✅</h3>
   <p>Your location has been received successfully.</p>
 `;
