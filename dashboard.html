@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,11 +10,8 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  >
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-document.getElementById("loginButton").addEventListener("click", login);
   <style>
     body {
       margin: 0;
@@ -36,6 +34,7 @@ document.getElementById("loginButton").addEventListener("click", login);
       margin: 8px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      box-sizing: border-box;
     }
 
     button {
@@ -73,7 +72,6 @@ document.getElementById("loginButton").addEventListener("click", login);
 
 <body>
 
-  <!-- LOGIN -->
   <div id="login">
 
     <h2>🔐 Dashboard Login</h2>
@@ -90,9 +88,8 @@ document.getElementById("loginButton").addEventListener("click", login);
       placeholder="Password"
     >
 
-     <button type="button" id="loginButton">
-     Login
-
+    <button type="button" id="loginButton">
+      Login
     </button>
 
     <div id="error"></div>
@@ -100,7 +97,6 @@ document.getElementById("loginButton").addEventListener("click", login);
   </div>
 
 
-  <!-- DASHBOARD -->
   <div id="dashboard">
 
     <h2>📍 My Location Dashboard</h2>
@@ -109,6 +105,10 @@ document.getElementById("loginButton").addEventListener("click", login);
 
   </div>
 
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
 
@@ -125,11 +125,10 @@ document.getElementById("loginButton").addEventListener("click", login);
       );
 
 
-    // LOGIN
     async function login() {
 
       const email =
-        document.getElementById("email").value;
+        document.getElementById("email").value.trim();
 
       const password =
         document.getElementById("password").value;
@@ -137,10 +136,16 @@ document.getElementById("loginButton").addEventListener("click", login);
       const errorBox =
         document.getElementById("error");
 
+      if (!email || !password) {
+        errorBox.innerText =
+          "Please enter your email and password.";
+        return;
+      }
+
       errorBox.innerText = "Logging in...";
 
 
-      const { data, error } =
+      const { error } =
         await supabase.auth.signInWithPassword({
           email: email,
           password: password
@@ -152,14 +157,14 @@ document.getElementById("loginButton").addEventListener("click", login);
         errorBox.innerText =
           "Login failed: " + error.message;
 
+        console.error(error);
+
         return;
       }
 
 
-      // Hide login
       document.getElementById("login").style.display = "none";
 
-      // Show dashboard
       document.getElementById("dashboard").style.display = "block";
 
 
@@ -167,8 +172,11 @@ document.getElementById("loginButton").addEventListener("click", login);
     }
 
 
+    document
+      .getElementById("loginButton")
+      .addEventListener("click", login);
 
-    // LOAD LOCATIONS
+
     async function loadLocations() {
 
       const map =
@@ -190,17 +198,26 @@ document.getElementById("loginButton").addEventListener("click", login);
       const { data, error } =
         await supabase
           .from("locations")
-          .select("latitude, longitude, name, created_at");
+          .select(
+            "latitude, longitude, name, created_at"
+          );
 
 
       if (error) {
 
         console.error(error);
 
-        alert(
+        document.getElementById("error").innerText =
           "Could not load locations: " +
-          error.message
-        );
+          error.message;
+
+        return;
+      }
+
+
+      if (!data || data.length === 0) {
+
+        alert("No locations found.");
 
         return;
       }
@@ -236,3 +253,4 @@ document.getElementById("loginButton").addEventListener("click", login);
 
 </body>
 </html>
+```
