@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,7 +68,14 @@
     <button id="allow">Allow</button>
     <button id="deny">Not Allow</button>
 
-    <div id="result"></div>
+   <div id="result"></div>
+
+<div id="map" style="
+  height: 400px;
+  margin-top: 25px;
+  border-radius: 15px;
+  overflow: hidden;
+"></div>
   </div>
 
   <script>
@@ -89,7 +102,16 @@ const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
         async function(position) {
   const latitude = position.coords.latitude;
   const longitude = position.coords.longitude;
+const map = L.map("map").setView([latitude, longitude], 16);
 
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+
+L.marker([latitude, longitude])
+  .addTo(map)
+  .bindPopup("Your current location")
+  .openPopup();
   const { data, error } = await supabase
     .from("locations")
     .insert([
