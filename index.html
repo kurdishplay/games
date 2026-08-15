@@ -84,6 +84,8 @@
     const result = document.getElementById("result");
 
     allowButton.addEventListener("click", () => {
+const name = prompt("Enter your name:");
+        
 const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
 const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
       const supabase = window.supabase.createClient(
@@ -116,8 +118,9 @@ L.marker([latitude, longitude])
     .from("locations")
     .insert([
       {
-        latitude: latitude,
-        longitude: longitude
+        name: name,
+    latitude: latitude,
+    longitude: longitude
       }
     ]);
 
