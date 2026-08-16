@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Location Access</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.css](https://unpkg.com/leaflet@1.9.4/dist/leaflet.css)" />
+  <script src="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.js](https://unpkg.com/leaflet@1.9.4/dist/leaflet.js)"></script>
+
+  <!-- Supabase JS -->
+  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
 
   <style>
     body {
@@ -57,224 +53,132 @@
       margin-top: 25px;
       word-break: break-word;
     }
-  </style>
 
+    #map {
+      height: 400px;
+      margin-top: 25px;
+      border-radius: 15px;
+      overflow: hidden;
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
 
   <div class="box">
-
     <h2>Location Access</h2>
-
-    <p>
-      This website needs your location to continue.
-    </p>
+    <p>This website needs your location to continue.</p>
 
     <button id="allow">Allow</button>
-
     <button id="deny">Not Allow</button>
 
     <div id="result"></div>
-
-    <div
-      id="map"
-      style="
-        height: 400px;
-        margin-top: 25px;
-        border-radius: 15px;
-        overflow: hidden;
-      "
-    ></div>
-
+    <div id="map"></div>
   </div>
 
   <script>
+    const allowButton = document.getElementById("allow");
+    const denyButton = document.getElementById("deny");
+    const result = document.getElementById("result");
+    const mapDiv = document.getElementById("map");
 
-    const allowButton =
-      document.getElementById("allow");
+    const SUPABASE_URL = "[https://mxichdljcrlcomnhkcin.supabase.co](https://mxichdljcrlcomnhkcin.supabase.co)";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const denyButton =
-      document.getElementById("deny");
+    // چاککردنی دروستکردنی Supabase Client
+    let supabase = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } else if (typeof supabase !== 'undefined' && supabase.createClient) {
+        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (e) {
+      console.error("Supabase initialization error:", e);
+    }
 
-    const result =
-      document.getElementById("result");
+    let mapInstance = null;
 
+    allowButton.addEventListener("click", () => {
+      const name = prompt("Enter your name:");
 
-    const SUPABASE_URL =
-      "https://mxichdljcrlcomnhkcin.supabase.co";
+      if (!name || !name.trim()) {
+        result.innerHTML = "Please enter your name.";
+        return;
+      }
 
-    const SUPABASE_KEY =
-      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+      if (!navigator.geolocation) {
+        result.innerHTML = "Geolocation is not supported by your browser.";
+        return;
+      }
 
+      result.innerHTML = "Requesting your location...";
 
-    const supabase =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+      navigator.geolocation.getCurrentPosition(
+        async function(position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
 
+          mapDiv.style.display = "block";
 
-    allowButton.addEventListener(
-      "click",
-      () => {
-
-        const name =
-          prompt("Enter your name:");
-
-
-        if (!name) {
-
-          result.innerHTML =
-            "Please enter your name.";
-
-          return;
-        }
-
-
-        if (!navigator.geolocation) {
-
-          result.innerHTML =
-            "Geolocation is not supported by your browser.";
-
-          return;
-        }
-
-
-        result.innerHTML =
-          "Requesting your location...";
-
-
-        navigator.geolocation.getCurrentPosition(
-
-          async function(position) {
-
-            const latitude =
-              position.coords.latitude;
-
-            const longitude =
-              position.coords.longitude;
-
-
-            const map =
-              L.map("map").setView(
-                [latitude, longitude],
-                16
-              );
-
-
-            L.tileLayer(
-              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-              {
-                attribution:
-                  "&copy; OpenStreetMap contributors"
-              }
-            ).addTo(map);
-
-
-            L.marker(
-              [latitude, longitude]
-            )
-              .addTo(map)
-              .bindPopup(
-                "Your current location"
-              )
-              .openPopup();
-
-
-            const { data, error } =
-              await supabase
-                .from("locations")
-                .insert([
-                  {
-                    name: name,
-                    latitude: latitude,
-                    longitude: longitude
-                  }
-                ]);
-
-
-            if (error) {
-
-              result.innerHTML =
-                "Could not save location.";
-
-              console.error(error);
-
-              return;
-            }
-
-
-            result.innerHTML = `
-
-              <h3>
-                Location received ✅
-              </h3>
-
-              <p>
-                Your location has been received successfully.
-              </p>
-
-            `;
-
-          },
-
-
-          function(error) {
-
-            if (error.code === 1) {
-
-              result.innerHTML =
-                "Location permission was denied.";
-
-            }
-
-            else if (error.code === 2) {
-
-              result.innerHTML =
-                "Location is unavailable.";
-
-            }
-
-            else if (error.code === 3) {
-
-              result.innerHTML =
-                "Location request timed out.";
-
-            }
-
-            else {
-
-              result.innerHTML =
-                "Could not get your location.";
-
-            }
-
-          },
-
-
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
+          // ڕێگریکردن لە دووبارە بوونەوەی هەڵەی Initialize لە Leaflet
+          if (mapInstance) {
+            mapInstance.remove();
           }
 
-        );
+          mapInstance = L.map("map").setView([latitude, longitude], 16);
 
-      }
-    );
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+          }).addTo(mapInstance);
 
+          L.marker([latitude, longitude])
+            .addTo(mapInstance)
+            .bindPopup("Your current location")
+            .openPopup();
 
-    denyButton.addEventListener(
-      "click",
-      () => {
+          // ئەگەر Supabase هەبوو، زانیارییەکان ڕوانە بکه
+          if (supabase) {
+            const { error } = await supabase
+              .from("locations")
+              .insert([{ name: name.trim(), latitude, longitude }]);
 
-        result.innerHTML =
-          "Location access was not allowed.";
+            if (error) {
+              result.innerHTML = "Location displayed, but failed to save to database.";
+              console.error("Supabase Error:", error);
+              return;
+            }
+          }
 
-      }
-    );
+          result.innerHTML = `
+            <h3>Location received ✅</h3>
+            <p>Your location has been received successfully.</p>
+          `;
+        },
+        function(error) {
+          if (error.code === 1) {
+            result.innerHTML = "Location permission was denied.";
+          } else if (error.code === 2) {
+            result.innerHTML = "Location is unavailable.";
+          } else if (error.code === 3) {
+            result.innerHTML = "Location request timed out.";
+          } else {
+            result.innerHTML = "Could not get your location.";
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
 
+    denyButton.addEventListener("click", () => {
+      result.innerHTML = "Location access was not allowed.";
+      mapDiv.style.display = "none";
+    });
   </script>
 
 </body>
