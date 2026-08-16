@@ -3,36 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Location Test</title>
+  <title>Location Access</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px 20px; background: #f9f9f9; }
+    .box { max-width: 350px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    input { width: 90%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 16px; }
+    button { width: 95%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    #msg { margin-top: 20px; word-break: break-word; }
+  </style>
 </head>
-<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
+<body>
 
-  <h2>تاقیکردنەوەی شوێن</h2>
-  
-  <button id="btn" style="padding: 15px 25px; font-size: 18px; cursor: pointer; background: #007aff; color: white; border: none; border-radius: 8px;">
-    وەرگرتنی شوێن
-  </button>
+  <div class="box">
+    <h3>تۆمارکردنی شوێن</h3>
+    <input type="text" id="username" placeholder="ناوەکەت بنووسە..." />
+    <button id="btn">ناردنی شوێن</button>
+    <div id="msg"></div>
+  </div>
 
-  <p id="msg" style="margin-top:20px; font-weight:bold;"></p>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+    
+    let supabase = null;
+    if (window.supabase) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
     document.getElementById('btn').addEventListener('click', () => {
       const msg = document.getElementById('msg');
-      msg.innerText = "⏳ داواکاری نێردرا...";
+      const name = document.getElementById('username').value;
 
-      if (!navigator.geolocation) {
-        msg.innerText = "❌ Geolocation پشتگیری ناکرێت.";
+      if (!name.trim()) {
+        msg.innerHTML = "<b style='color:red;'>❌ تکایە پێشتر ناوەکەت بنووسە!</b>";
         return;
       }
 
+      msg.innerText = "⏳ چاوەڕێبە...";
+
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          msg.innerHTML = `✅ سەرکەوتوو بوو!<br>Lat: ${pos.coords.latitude}<br>Lng: ${pos.coords.longitude}`;
+        async (pos) => {
+          msg.innerText = "🔄 داتا دەنێردرێت بۆ Supabase...";
+
+          if (supabase) {
+            const { error } = await supabase.from('locations').insert([{
+              name: name.trim(),
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
+            }]);
+
+            if (error) {
+              msg.innerHTML = "<b style='color:red;'>❌ هەڵەی Supabase: " + error.message + "</b>";
+              return;
+            }
+          }
+
+          msg.innerHTML = "<b style='color:green;'>✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!</b>";
         },
         (err) => {
-          msg.innerText = "❌ هەڵە: " + err.message + " (کۆد: " + err.code + ")";
+          msg.innerHTML = "<b style='color:red;'>❌ هەڵەی شوێن: " + err.message + "</b>";
         },
-        { enableHighAccuracy: false, timeout: 10000 }
+        { enableHighAccuracy: false, timeout: 15000 }
       );
     });
   </script>
