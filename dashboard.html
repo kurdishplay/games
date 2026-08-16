@@ -72,6 +72,7 @@
 
 <body>
 
+  <!-- LOGIN -->
   <div id="login">
 
     <h2>🔐 Dashboard Login</h2>
@@ -88,7 +89,7 @@
       placeholder="Password"
     >
 
-    <button type="button" id="loginButton">
+    <button type="button" onclick="login()">
       Login
     </button>
 
@@ -97,6 +98,7 @@
   </div>
 
 
+  <!-- DASHBOARD -->
   <div id="dashboard">
 
     <h2>📍 My Location Dashboard</h2>
@@ -106,10 +108,13 @@
   </div>
 
 
+  <!-- LIBRARIES -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
+  <!-- OUR JAVASCRIPT -->
   <script>
 
     const SUPABASE_URL =
@@ -136,19 +141,26 @@
       const errorBox =
         document.getElementById("error");
 
+
       if (!email || !password) {
+
         errorBox.innerText =
           "Please enter your email and password.";
+
         return;
       }
+
 
       errorBox.innerText = "Logging in...";
 
 
       const { error } =
         await supabase.auth.signInWithPassword({
+
           email: email,
+
           password: password
+
         });
 
 
@@ -163,18 +175,15 @@
       }
 
 
-      document.getElementById("login").style.display = "none";
+      document.getElementById("login").style.display =
+        "none";
 
-      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("dashboard").style.display =
+        "block";
 
 
       loadLocations();
     }
-
-
-    document
-      .getElementById("loginButton")
-      .addEventListener("click", login);
 
 
     async function loadLocations() {
