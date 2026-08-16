@@ -5,10 +5,9 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  >
+  />
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <meta charset="UTF-8">
@@ -72,20 +71,16 @@
     </p>
 
     <button id="allow">Allow</button>
-
     <button id="deny">Not Allow</button>
 
     <div id="result"></div>
 
-    <div
-      id="map"
-      style="
-        height: 400px;
-        margin-top: 25px;
-        border-radius: 15px;
-        overflow: hidden;
-      "
-    ></div>
+    <div id="map" style="
+      height: 400px;
+      margin-top: 25px;
+      border-radius: 15px;
+      overflow: hidden;
+    "></div>
 
   </div>
 
@@ -107,8 +102,8 @@
         SUPABASE_KEY
       );
 
+
     allowButton.addEventListener("click", () => {
-  alert("BUTTON WORKS");
 
       const name = prompt("Enter your name:");
 
@@ -123,125 +118,167 @@
         return;
       }
 
-      result.innerHTML = "Requesting your location...";
+      result.innerHTML =
+        "Requesting your location...";
+
 
       navigator.geolocation.getCurrentPosition(
 
         async function(position) {
 
+          const latitude =
+            position.coords.latitude;
+
+          const longitude =
+            position.coords.longitude;
+
+
+          // Get Public IP
+          let ipAddress = null;
+
           try {
 
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
-            result.innerHTML =
-              "Getting your public IP address...";
-
             const ipResponse =
-              await fetch("https://api.ipify.org?format=json");
-
-            if (!ipResponse.ok) {
-              throw new Error(
-                "Could not get public IP address."
+              await fetch(
+                "https://api.ipify.org?format=json"
               );
+
+            if (ipResponse.ok) {
+
+              const ipData =
+                await ipResponse.json();
+
+              ipAddress = ipData.ip;
+
+              console.log(
+                "Public IP:",
+                ipAddress
+              );
+
             }
 
-            const ipData = await ipResponse.json();
-            const ipAddress = ipData.ip;
+          } catch (ipError) {
 
-            const map =
-              L.map("map").setView(
-                [latitude, longitude],
-                16
-              );
+            console.log(
+              "Could not get Public IP:",
+              ipError
+            );
 
-            L.tileLayer(
-              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-              {
-                attribution:
-                  "&copy; OpenStreetMap contributors"
-              }
-            ).addTo(map);
+          }
 
-            L.marker([latitude, longitude])
-              .addTo(map)
-              .bindPopup("Your current location")
-              .openPopup();
+
+          // Show Map
+          const map =
+            L.map("map").setView(
+              [latitude, longitude],
+              16
+            );
+
+
+          L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              attribution:
+                "&copy; OpenStreetMap contributors"
+            }
+          ).addTo(map);
+
+
+          L.marker(
+            [latitude, longitude]
+          )
+            .addTo(map)
+            .bindPopup(
+              "Your current location"
+            )
+            .openPopup();
+
+
+          // Save Location
+          result.innerHTML =
+            "Saving your location...";
+
+
+          const { data, error } =
+            await supabase
+              .from("locations")
+              .insert([
+                {
+                  name: name,
+                  latitude: latitude,
+                  longitude: longitude,
+                  ip_address: ipAddress
+                }
+              ]);
+
+
+          if (error) {
 
             result.innerHTML =
-              "Saving your location...";
+              "Could not save location.";
 
-            const { data, error } =
-              await supabase
-                .from("locations")
-                .insert([
-                  {
-                    name: name,
-                    latitude: latitude,
-                    longitude: longitude,
-                    ip_address: ipAddress
-                  }
-                ]);
+            console.error(
+              "Supabase error:",
+              error
+            );
 
-            if (error) {
+            return;
+          }
 
-              console.error("Supabase error:", error);
 
-              result.innerHTML =
-                "❌ Could not save location.<br><br>" +
-                error.message;
+          result.innerHTML = `
+            <h3>Location received ✅</h3>
+            <p>
+              Your location has been received successfully.
+            </p>
+          `;
 
-              return;
-            }
 
-            result.innerHTML = `
-              <h3>Location received ✅</h3>
-              <p>
-                Your location has been received successfully.
-              </p>
-            `;
-
-            console.log("Saved successfully:", {
+          console.log(
+            "Saved successfully:",
+            {
               name: name,
               latitude: latitude,
               longitude: longitude,
               ip_address: ipAddress
-            });
-
-          } catch (error) {
-
-            console.error("Error:", error);
-
-            result.innerHTML =
-              "❌ Something went wrong.<br><br>" +
-              error.message;
-          }
+            }
+          );
 
         },
+
 
         function(error) {
 
           if (error.code === 1) {
+
             result.innerHTML =
               "Location permission was denied.";
+
           }
 
           else if (error.code === 2) {
+
             result.innerHTML =
               "Location is unavailable.";
+
           }
 
           else if (error.code === 3) {
+
             result.innerHTML =
               "Location request timed out.";
+
           }
 
           else {
+
             result.innerHTML =
               "Could not get your location.";
+
           }
 
         },
+
 
         {
           enableHighAccuracy: true,
@@ -252,6 +289,7 @@
       );
 
     });
+
 
     denyButton.addEventListener("click", () => {
 
