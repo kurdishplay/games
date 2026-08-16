@@ -419,22 +419,54 @@
 
       /* Create Leaflet map */
 
-      map = L.map("map").setView(
-        [36.249741, 44.771992],
-        10
-      );
+      // MAP
+map = L.map("map").setView(
+  [36.249741, 44.771992],
+  10
+);
 
 
-      /* OpenStreetMap */
+// NORMAL MAP
+const normalMap = L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution:
+      "&copy; OpenStreetMap contributors"
+  }
+);
 
-      L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          attribution:
-            "&copy; OpenStreetMap contributors"
-        }
-      ).addTo(map);
 
+// SATELLITE MAP
+const satelliteMap = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  {
+    maxZoom: 19,
+    attribution:
+      "Tiles &copy; Esri"
+  }
+);
+
+
+// DEFAULT = NORMAL MAP
+normalMap.addTo(map);
+
+
+// MAP TYPE SWITCHER
+const baseMaps = {
+  "🗺️ Map": normalMap,
+  "🛰️ Satellite": satelliteMap
+};
+
+
+L.control.layers(
+  baseMaps,
+  null,
+  {
+    position: "topright",
+    collapsed: false
+  }
+).addTo(map);
 
       /* =========================
          GET LOCATIONS
