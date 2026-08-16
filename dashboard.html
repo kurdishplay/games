@@ -7,39 +7,58 @@
 
   <title>My Location Dashboard</title>
 
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   >
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f5f5f5;
     }
 
+    /* LOGIN */
     #login {
-      max-width: 350px;
+      max-width: 380px;
       margin: 80px auto;
       background: white;
-      padding: 25px;
+      padding: 30px;
       border-radius: 15px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.10);
+    }
+
+    #login h2 {
       text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
     }
 
     input {
-      width: 90%;
-      padding: 12px;
-      margin: 8px;
+      display: block;
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 12px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #007aff;
     }
 
     button {
-      width: 95%;
-      padding: 12px;
+      display: block;
+      width: 100%;
+      padding: 13px;
       margin-top: 10px;
       border: none;
       border-radius: 8px;
@@ -49,73 +68,145 @@
       cursor: pointer;
     }
 
+    button:hover {
+      background: #0066d6;
+    }
+
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    #error {
+      margin-top: 15px;
+      text-align: center;
+      color: #d00;
+      min-height: 20px;
+      line-height: 1.5;
+    }
+
+    /* DASHBOARD */
     #dashboard {
       display: none;
     }
 
-    h2 {
+    #dashboardHeader {
+      background: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 1000;
+    }
+
+    #dashboardHeader h2 {
+      margin: 0;
       text-align: center;
-      padding: 15px;
+    }
+
+    #logoutButton {
+      max-width: 120px;
+      margin: 10px auto 0;
+      background: #dc3545;
+    }
+
+    #logoutButton:hover {
+      background: #bb2d3b;
+    }
+
+    #status {
+      text-align: center;
+      padding: 10px;
+      background: #fff;
+      color: #555;
     }
 
     #map {
       height: 80vh;
       width: 100%;
     }
-
-    #error {
-      color: red;
-      margin-top: 10px;
-    }
   </style>
 </head>
 
 <body>
 
-  <!-- LOGIN -->
+  <!-- =========================
+       LOGIN
+  ========================== -->
   <div id="login">
 
     <h2>🔐 Dashboard Login</h2>
 
-    <input
-      type="email"
-      id="email"
-      placeholder="Email"
-    >
+    <form id="loginForm">
 
-    <input
-      type="password"
-      id="password"
-      placeholder="Password"
-    >
+      <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      >
 
-    <button type="button" onclick="login()">
-      Login
-    </button>
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit" id="loginButton">
+        Login
+      </button>
+
+    </form>
 
     <div id="error"></div>
 
   </div>
 
 
-  <!-- DASHBOARD -->
+  <!-- =========================
+       DASHBOARD
+  ========================== -->
   <div id="dashboard">
 
-    <h2>📍 My Location Dashboard</h2>
+    <div id="dashboardHeader">
+      <h2>📍 My Location Dashboard</h2>
+
+      <button type="button" id="logoutButton">
+        Logout
+      </button>
+    </div>
+
+    <div id="status">
+      Loading locations...
+    </div>
 
     <div id="map"></div>
 
   </div>
 
 
-  <!-- LIBRARIES -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- =========================
+       SUPABASE + APP
+  ========================== -->
+
+  <script type="module">
+
+    import {
+      createClient
+    } from "https://esm.sh/@supabase/supabase-js@2";
 
 
-  <!-- OUR JAVASCRIPT -->
-  <script>
+    /* =========================
+       SUPABASE CONFIG
+    ========================== */
 
     const SUPABASE_URL =
       "https://mxichdljcrlcomnhkcin.supabase.co";
@@ -123,77 +214,218 @@
     const SUPABASE_KEY =
       "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const supabase =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
 
-    async function login() {
+    /* =========================
+       ELEMENTS
+    ========================== */
+
+    const login = document.getElementById("login");
+    const dashboard = document.getElementById("dashboard");
+
+    const loginForm = document.getElementById("loginForm");
+    const loginButton = document.getElementById("loginButton");
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    const errorBox = document.getElementById("error");
+
+    const statusBox = document.getElementById("status");
+
+    const logoutButton =
+      document.getElementById("logoutButton");
+
+
+    /* =========================
+       MAP VARIABLE
+    ========================== */
+
+    let map = null;
+
+
+    /* =========================
+       SHOW DASHBOARD
+    ========================== */
+
+    async function showDashboard() {
+
+      login.style.display = "none";
+      dashboard.style.display = "block";
+
+      errorBox.innerText = "";
+
+      await loadLocations();
+    }
+
+
+    /* =========================
+       SHOW LOGIN
+    ========================== */
+
+    function showLogin() {
+
+      dashboard.style.display = "none";
+      login.style.display = "block";
+
+      emailInput.focus();
+    }
+
+
+    /* =========================
+       LOGIN
+    ========================== */
+
+    loginForm.addEventListener("submit", async function(event) {
+
+      event.preventDefault();
+
+      errorBox.style.color = "#555";
+      errorBox.innerText = "Logging in...";
+
+      loginButton.disabled = true;
+      loginButton.innerText = "Logging in...";
+
 
       const email =
-        document.getElementById("email").value.trim();
+        emailInput.value.trim();
 
       const password =
-        document.getElementById("password").value;
-
-      const errorBox =
-        document.getElementById("error");
+        passwordInput.value;
 
 
       if (!email || !password) {
 
+        errorBox.style.color = "red";
         errorBox.innerText =
           "Please enter your email and password.";
 
+        loginButton.disabled = false;
+        loginButton.innerText = "Login";
+
         return;
       }
 
 
-      errorBox.innerText = "Logging in...";
+      try {
 
-
-      const { error } =
-        await supabase.auth.signInWithPassword({
-
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email: email,
-
           password: password
-
         });
 
 
-      if (error) {
+        if (error) {
+
+          console.error(
+            "Supabase login error:",
+            error
+          );
+
+          errorBox.style.color = "red";
+
+          errorBox.innerText =
+            "Login failed: " + error.message;
+
+          loginButton.disabled = false;
+          loginButton.innerText = "Login";
+
+          return;
+        }
+
+
+        console.log(
+          "Login successful:",
+          data
+        );
+
+
+        errorBox.style.color = "green";
+        errorBox.innerText =
+          "Login successful ✓";
+
+
+        await showDashboard();
+
+
+      } catch (err) {
+
+        console.error(
+          "Unexpected login error:",
+          err
+        );
+
+        errorBox.style.color = "red";
 
         errorBox.innerText =
-          "Login failed: " + error.message;
+          "Unexpected error: " +
+          (err.message || err);
 
-        console.error(error);
 
-        return;
+        loginButton.disabled = false;
+        loginButton.innerText = "Login";
       }
 
-
-      document.getElementById("login").style.display =
-        "none";
-
-      document.getElementById("dashboard").style.display =
-        "block";
+    });
 
 
-      loadLocations();
-    }
+    /* =========================
+       LOGOUT
+    ========================== */
 
+    logoutButton.addEventListener(
+      "click",
+      async function() {
+
+        await supabase.auth.signOut();
+
+        if (map) {
+          map.remove();
+          map = null;
+        }
+
+        showLogin();
+
+      }
+    );
+
+
+    /* =========================
+       LOAD LOCATIONS
+    ========================== */
 
     async function loadLocations() {
 
-      const map =
-        L.map("map").setView(
-          [36.249741, 44.771992],
-          10
-        );
+      statusBox.innerText =
+        "Loading locations...";
 
+
+      /* Prevent duplicate maps */
+
+      if (map) {
+
+        map.remove();
+        map = null;
+      }
+
+
+      /* Create Leaflet map */
+
+      map = L.map("map").setView(
+        [36.249741, 44.771992],
+        10
+      );
+
+
+      /* OpenStreetMap */
 
       L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -204,19 +436,36 @@
       ).addTo(map);
 
 
-      const { data, error } =
-        await supabase
-          .from("locations")
-          .select(
-            "latitude, longitude, name, created_at"
-          );
+      /* =========================
+         GET LOCATIONS
+      ========================== */
+
+      const {
+        data,
+        error
+      } = await supabase
+        .from("locations")
+        .select(
+          "latitude, longitude, name, created_at"
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
 
 
       if (error) {
 
-        console.error(error);
+        console.error(
+          "Location loading error:",
+          error
+        );
 
-        document.getElementById("error").innerText =
+        statusBox.style.color = "red";
+
+        statusBox.innerText =
           "Could not load locations: " +
           error.message;
 
@@ -226,13 +475,23 @@
 
       if (!data || data.length === 0) {
 
-        alert("No locations found.");
+        statusBox.style.color = "#555";
+
+        statusBox.innerText =
+          "No locations found.";
 
         return;
       }
 
 
-      data.forEach(location => {
+      /* =========================
+         ADD MARKERS
+      ========================== */
+
+      const bounds = [];
+
+
+      data.forEach(function(location) {
 
         if (
           location.latitude == null ||
@@ -242,21 +501,195 @@
         }
 
 
+        const latitude =
+          Number(location.latitude);
+
+        const longitude =
+          Number(location.longitude);
+
+
+        if (
+          Number.isNaN(latitude) ||
+          Number.isNaN(longitude)
+        ) {
+          return;
+        }
+
+
         const marker =
           L.marker([
-            location.latitude,
-            location.longitude
+            latitude,
+            longitude
           ]).addTo(map);
 
 
-        marker.bindPopup(
-          "📍 " +
-          (location.name || "Unknown")
-        );
+        const name =
+          location.name || "Unknown";
+
+
+        const createdAt =
+          location.created_at
+            ? new Date(
+                location.created_at
+              ).toLocaleString()
+            : "";
+
+
+        marker.bindPopup(`
+          <div style="min-width:150px;">
+            <strong>📍 ${escapeHtml(name)}</strong>
+            ${
+              createdAt
+                ? `<br><small>${escapeHtml(createdAt)}</small>`
+                : ""
+            }
+          </div>
+        `);
+
+
+        bounds.push([
+          latitude,
+          longitude
+        ]);
 
       });
 
+
+      /* =========================
+         FIT MAP TO MARKERS
+      ========================== */
+
+      if (bounds.length > 0) {
+
+        map.fitBounds(bounds, {
+          padding: [30, 30]
+        });
+
+      }
+
+
+      statusBox.style.color = "green";
+
+      statusBox.innerText =
+        `${bounds.length} location(s) found.`;
+
     }
+
+
+    /* =========================
+       HTML ESCAPE
+    ========================== */
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    /* =========================
+       CHECK EXISTING SESSION
+    ========================== */
+
+    async function checkSession() {
+
+      try {
+
+        const {
+          data,
+          error
+        } = await supabase.auth.getSession();
+
+
+        if (error) {
+
+          console.error(
+            "Session error:",
+            error
+          );
+
+          return;
+        }
+
+
+        if (data.session) {
+
+          console.log(
+            "Existing session found."
+          );
+
+          await showDashboard();
+
+        } else {
+
+          console.log(
+            "No active session."
+          );
+
+          showLogin();
+
+        }
+
+      } catch (err) {
+
+        console.error(
+          "Session check failed:",
+          err
+        );
+
+        showLogin();
+      }
+
+    }
+
+
+    /* =========================
+       AUTH STATE LISTENER
+    ========================== */
+
+    supabase.auth.onAuthStateChange(
+      async function(event, session) {
+
+        console.log(
+          "Auth event:",
+          event
+        );
+
+        if (
+          event === "SIGNED_IN" &&
+          session
+        ) {
+
+          await showDashboard();
+
+        }
+
+        if (
+          event === "SIGNED_OUT"
+        ) {
+
+          if (map) {
+
+            map.remove();
+            map = null;
+          }
+
+          showLogin();
+        }
+
+      }
+    );
+
+
+    /* =========================
+       START APP
+    ========================== */
+
+    checkSession();
 
   </script>
 
