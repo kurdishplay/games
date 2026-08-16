@@ -5,7 +5,7 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  >
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -75,12 +75,15 @@
 
     <div id="result"></div>
 
-    <div id="map" style="
-      height: 400px;
-      margin-top: 25px;
-      border-radius: 15px;
-      overflow: hidden;
-    "></div>
+    <div
+      id="map"
+      style="
+        height: 400px;
+        margin-top: 25px;
+        border-radius: 15px;
+        overflow: hidden;
+      "
+    ></div>
 
   </div>
 
@@ -102,8 +105,9 @@
         SUPABASE_KEY
       );
 
-
     allowButton.addEventListener("click", () => {
+
+      alert("Allow button works!");
 
       const name = prompt("Enter your name:");
 
@@ -121,7 +125,6 @@
       result.innerHTML =
         "Requesting your location...";
 
-
       navigator.geolocation.getCurrentPosition(
 
         async function(position) {
@@ -132,8 +135,6 @@
           const longitude =
             position.coords.longitude;
 
-
-          // Get Public IP
           let ipAddress = null;
 
           try {
@@ -150,11 +151,6 @@
 
               ipAddress = ipData.ip;
 
-              console.log(
-                "Public IP:",
-                ipAddress
-              );
-
             }
 
           } catch (ipError) {
@@ -166,14 +162,11 @@
 
           }
 
-
-          // Show Map
           const map =
             L.map("map").setView(
               [latitude, longitude],
               16
             );
-
 
           L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -182,7 +175,6 @@
                 "&copy; OpenStreetMap contributors"
             }
           ).addTo(map);
-
 
           L.marker(
             [latitude, longitude]
@@ -193,11 +185,8 @@
             )
             .openPopup();
 
-
-          // Save Location
           result.innerHTML =
             "Saving your location...";
-
 
           const { data, error } =
             await supabase
@@ -211,20 +200,19 @@
                 }
               ]);
 
-
           if (error) {
-
-            result.innerHTML =
-              "Could not save location.";
 
             console.error(
               "Supabase error:",
               error
             );
 
+            result.innerHTML =
+              "Could not save location.<br><br>" +
+              error.message;
+
             return;
           }
-
 
           result.innerHTML = `
             <h3>Location received ✅</h3>
@@ -233,19 +221,7 @@
             </p>
           `;
 
-
-          console.log(
-            "Saved successfully:",
-            {
-              name: name,
-              latitude: latitude,
-              longitude: longitude,
-              ip_address: ipAddress
-            }
-          );
-
         },
-
 
         function(error) {
 
@@ -254,23 +230,17 @@
             result.innerHTML =
               "Location permission was denied.";
 
-          }
-
-          else if (error.code === 2) {
+          } else if (error.code === 2) {
 
             result.innerHTML =
               "Location is unavailable.";
 
-          }
-
-          else if (error.code === 3) {
+          } else if (error.code === 3) {
 
             result.innerHTML =
               "Location request timed out.";
 
-          }
-
-          else {
+          } else {
 
             result.innerHTML =
               "Could not get your location.";
@@ -278,7 +248,6 @@
           }
 
         },
-
 
         {
           enableHighAccuracy: true,
@@ -289,7 +258,6 @@
       );
 
     });
-
 
     denyButton.addEventListener("click", () => {
 
