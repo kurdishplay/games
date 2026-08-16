@@ -3,145 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Location Access</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px 20px;
-      background: #f5f5f5;
-    }
-
-    .box {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,.1);
-    }
-
-    input {
-      width: 90%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      text-align: center;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      background: #007aff;
-      color: white;
-    }
-
-    #result {
-      margin-top: 25px;
-      line-height: 1.6;
-      word-break: break-word;
-    }
-  </style>
+  <title>Location Test</title>
 </head>
+<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
 
-<body>
+  <h2>تاقیکردنەوەی شوێن</h2>
+  
+  <button id="btn" style="padding: 15px 25px; font-size: 18px; cursor: pointer; background: #007aff; color: white; border: none; border-radius: 8px;">
+    وەرگرتنی شوێن
+  </button>
 
-  <div class="box">
-    <h2>داخڵبوون</h2>
-    <p>تکایە ناوت بنووسە بۆ بەردەوامبوون:</p>
-
-    <input type="text" id="username" placeholder="ناوی تەواو..." />
-
-    <button id="allow">بەردەوام بوون</button>
-
-    <div id="result">ئامادەیە...</div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <p id="msg" style="margin-top:20px; font-weight:bold;"></p>
 
   <script>
-    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-
-    let supabase = null;
-    try {
-      if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    const allowButton = document.getElementById("allow");
-    const result = document.getElementById("result");
-    const usernameInput = document.getElementById("username");
-
-    allowButton.addEventListener("click", function () {
-      const name = usernameInput.value;
-
-      if (!name || !name.trim()) {
-        result.innerHTML = "<b style='color:red;'>❌ تکایە پێشتر ناوەکەت بنووسە.</b>";
-        return;
-      }
-
-      result.innerText = "⏳ تکایە ڕێگەپێدان (Allow) قبوڵ بکە...";
+    document.getElementById('btn').addEventListener('click', () => {
+      const msg = document.getElementById('msg');
+      msg.innerText = "⏳ داواکاری نێردرا...";
 
       if (!navigator.geolocation) {
-        result.innerText = "❌ Geolocation پشتگیری ناکرێت.";
+        msg.innerText = "❌ Geolocation پشتگیری ناکرێت.";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        async function(position) {
-          result.innerText = "🔄 Location وەرگیرا، ڕەوانەی Supabase دەکرێت...";
-
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          let publicIP = null;
-
-          try {
-            const response = await fetch("https://api.ipify.org?format=json");
-            const ipData = await response.json();
-            publicIP = ipData.ip;
-          } catch (error) {
-            console.error(error);
-          }
-
-          if (supabase) {
-            const { error } = await supabase
-              .from("locations")
-              .insert([
-                {
-                  name: name.trim(),
-                  latitude: latitude,
-                  longitude: longitude,
-                  public_ip: publicIP
-                }
-              ]);
-
-            if (error) {
-              result.innerText = "❌ هەڵەی Supabase: " + error.message;
-              return;
-            }
-          }
-
-          result.innerHTML = "<h3>✅ سەرکەوتوو بوو!</h3><p>زانیارییەکان تۆمارکران.</p>";
+        (pos) => {
+          msg.innerHTML = `✅ سەرکەوتوو بوو!<br>Lat: ${pos.coords.latitude}<br>Lng: ${pos.coords.longitude}`;
         },
-        function(error) {
-          result.innerHTML = "<b style='color:red;'>❌ هەڵە لە وەرگرتنی شوێن. تکایە Permissions ڕێکبخەرەوە.</b>";
+        (err) => {
+          msg.innerText = "❌ هەڵە: " + err.message + " (کۆد: " + err.code + ")";
         },
-        {
-          enableHighAccuracy: false,
-          timeout: 20000
-        }
+        { enableHighAccuracy: false, timeout: 10000 }
       );
     });
   </script>
