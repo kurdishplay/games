@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Location Share</title>
+  <title>Location Access</title>
 
   <link
     rel="stylesheet"
@@ -67,7 +67,7 @@
 
   <div class="box">
 
-    <h2>Location Share</h2>
+    <h2>Location share</h2>
 
     <p>This website needs your location to continue.</p>
 
@@ -96,7 +96,7 @@
   <script>
 
     // =========================
-    // SUPABASE CONFIG
+    // SUPABASE
     // =========================
 
     const SUPABASE_URL =
@@ -105,7 +105,7 @@
     const SUPABASE_KEY =
       "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const supabase =
+    const supabaseClient =
       window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
@@ -136,10 +136,9 @@
     // ALLOW BUTTON
     // =========================
 
-    allowButton.addEventListener("click", () => {
+    allowButton.addEventListener("click", function () {
 
-      const name =
-        prompt("Enter your name:");
+      const name = prompt("Enter your name:");
 
       if (!name || !name.trim()) {
 
@@ -165,7 +164,7 @@
 
       navigator.geolocation.getCurrentPosition(
 
-        async function(position) {
+        async function (position) {
 
           const latitude =
             position.coords.latitude;
@@ -216,7 +215,7 @@
           // =========================
 
           const { error } =
-            await supabase
+            await supabaseClient
               .from("locations")
               .insert([
                 {
@@ -235,11 +234,15 @@
             );
 
             result.innerHTML =
-              "Location received, but failed to save.";
+              "Location received, but could not be saved.";
 
             return;
           }
 
+
+          // =========================
+          // SUCCESS
+          // =========================
 
           result.innerHTML = `
             <h3>Location received ✅</h3>
@@ -249,51 +252,38 @@
         },
 
 
-        // =========================
-        // LOCATION ERROR
-        // =========================
+        function (error) {
 
-        function(error) {
+          if (error.code === 1) {
 
-          switch(error.code) {
+            result.innerHTML =
+              "Location permission was denied.";
 
-            case error.PERMISSION_DENIED:
+          }
 
-              result.innerHTML =
-                "Location permission was denied.";
+          else if (error.code === 2) {
 
-              break;
+            result.innerHTML =
+              "Location information is unavailable.";
 
+          }
 
-            case error.POSITION_UNAVAILABLE:
+          else if (error.code === 3) {
 
-              result.innerHTML =
-                "Location information is unavailable.";
+            result.innerHTML =
+              "The location request timed out.";
 
-              break;
+          }
 
+          else {
 
-            case error.TIMEOUT:
-
-              result.innerHTML =
-                "The request to get user location timed out.";
-
-              break;
-
-
-            default:
-
-              result.innerHTML =
-                "An unknown error occurred.";
+            result.innerHTML =
+              "An unknown error occurred.";
 
           }
 
         },
 
-
-        // =========================
-        // LOCATION OPTIONS
-        // =========================
 
         {
           enableHighAccuracy: true,
@@ -307,10 +297,10 @@
 
 
     // =========================
-    // NOT ALLOW BUTTON
+    // DENY BUTTON
     // =========================
 
-    denyButton.addEventListener("click", () => {
+    denyButton.addEventListener("click", function () {
 
       result.innerHTML =
         "Location access was not allowed.";
