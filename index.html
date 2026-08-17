@@ -1,1 +1,291 @@
-<!DOCTYPE html> <html lang="ku"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Location Access</title> <style> body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 50px 20px; } .box { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,.1); } input { width: 100%; padding: 14px; box-sizing: border-box; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; } button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; background: #007aff; color: white; font-size: 16px; cursor: pointer; } #result { margin-top: 20px; line-height: 1.6; } </style> </head> <body> <div class="box"> <h2>📍 Location Access</h2> <input type="text" id="name" placeholder="ناوت بنووسە" > <button id="allow"> بەردەوام بوون </button> <div id="result"></div> </div> <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <script> const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co"; const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P"; const supabase = window.supabase.createClient( SUPABASE_URL, SUPABASE_KEY ); const button = document.getElementById("allow"); const result = document.getElementById("result"); button.addEventListener("click", function () { const name = document.getElementById("name").value.trim(); if (!name) { result.innerText = "❌ تکایە ناوت بنووسە."; return; } if (!navigator.geolocation) { result.innerText = "❌ Browser ـەکەت Location پشتگیری ناکات."; return; } result.innerText = "📍 تکایە چاوەڕێ بکە..."; navigator.geolocation.getCurrentPosition( async function(position) { const latitude = position.coords.latitude; const longitude = position.coords.longitude; result.innerText = "⏳ Location وەرگیرا، خەریکی هەڵگرتنە..."; const { error } = await supabase .from("locations") .insert([ { name: name, latitude: latitude, longitude: longitude } ]); if (error) { console.error(error); result.innerText = "❌ هەڵە لە هەڵگرتنی Location:\n" + error.message; return; } result.innerHTML = "✅ Location بە سەرکەوتوویی هەڵگیرا!"; }, function(error) { if (error.code === 1) { result.innerText = "❌ ڕێگەپێدان بۆ Location ڕەتکرایەوە."; } else if (error.code === 2) { result.innerText = "❌ Location بەردەست نییە."; } else if (error.code === 3) { result.innerText = "❌ داواکاری Location کاتی تەواو بوو."; } else { result.innerText = "❌ هەڵەیەک ڕوویدا."; } }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 } ); }); </script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Location Access</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px 20px;
+      background: #f5f5f5;
+    }
+
+    .box {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #allow {
+      background: #007aff;
+      color: white;
+    }
+
+    #deny {
+      background: #ddd;
+      color: #222;
+    }
+
+    #result {
+      margin-top: 25px;
+      word-break: break-word;
+    }
+
+    #map {
+      height: 400px;
+      margin-top: 25px;
+      border-radius: 15px;
+      overflow: hidden;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <h2>Location</h2>
+
+    <p>This website needs your permisson to continue.</p>
+
+    <button id="allow">
+      بەردەوام بوون
+    </button>
+
+    <button id="deny">
+      گەڕانەوە
+    </button>
+
+    <div id="result"></div>
+
+    <div id="map"></div>
+
+  </div>
+
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <script>
+
+    const allowButton =
+      document.getElementById("allow");
+
+    const denyButton =
+      document.getElementById("deny");
+
+    const result =
+      document.getElementById("result");
+
+    const mapDiv =
+      document.getElementById("map");
+
+
+    const SUPABASE_URL =
+      "https://mxichdljcrlcomnhkcin.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+
+
+    const supabase =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    let mapInstance = null;
+
+
+    allowButton.addEventListener("click", () => {
+
+      const name = prompt("Enter your name:");
+
+      if (!name || !name.trim()) {
+
+        result.innerHTML =
+          "Please enter a valid name.";
+
+        return;
+      }
+
+
+      if (!navigator.geolocation) {
+
+        result.innerHTML =
+          "Geolocation is not supported by your browser.";
+
+        return;
+      }
+
+
+      result.innerHTML =
+        "Requesting your location...";
+
+
+      navigator.geolocation.getCurrentPosition(
+
+        async function(position) {
+
+          const latitude =
+            position.coords.latitude;
+
+          const longitude =
+            position.coords.longitude;
+
+
+          mapDiv.style.display = "block";
+
+
+          if (mapInstance) {
+            mapInstance.remove();
+          }
+
+
+          mapInstance =
+            L.map("map").setView(
+              [latitude, longitude],
+              16
+            );
+
+
+          L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              attribution:
+                "&copy; OpenStreetMap contributors"
+            }
+          ).addTo(mapInstance);
+
+
+          L.marker([
+            latitude,
+            longitude
+          ])
+          .addTo(mapInstance)
+          .bindPopup("Your current location")
+          .openPopup();
+
+
+          const { error } =
+            await supabase
+              .from("locations")
+              .insert([
+                {
+                  name: name.trim(),
+                  latitude: latitude,
+                  longitude: longitude
+                }
+              ]);
+
+
+          if (error) {
+
+            result.innerHTML =
+              "Location retrieved, but failed to save to database.";
+
+            console.error(
+              "Supabase Error:",
+              error
+            );
+
+            return;
+          }
+
+
+          result.innerHTML = `
+            <h3>Location received ✅</h3>
+            <p>Your location has been saved successfully.</p>
+          `;
+
+        },
+
+
+        function(error) {
+
+          switch(error.code) {
+
+            case error.PERMISSION_DENIED:
+
+              result.innerHTML =
+                "Location permission was denied.";
+
+              break;
+
+
+            case error.POSITION_UNAVAILABLE:
+
+              result.innerHTML =
+                "Location information is unavailable.";
+
+              break;
+
+
+            case error.TIMEOUT:
+
+              result.innerHTML =
+                "The request to get user location timed out.";
+
+              break;
+
+
+            default:
+
+              result.innerHTML =
+                "An unknown error occurred.";
+
+          }
+
+        },
+
+
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+
+      );
+
+    });
+
+
+    denyButton.addEventListener("click", () => {
+
+      result.innerHTML =
+        "Location access was not allowed.";
+
+      mapDiv.style.display = "none";
+
+    });
+
+  </script>
+
+</body>
+</html>
