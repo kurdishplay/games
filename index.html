@@ -35,7 +35,7 @@
       console.log(e);
     }
 
-    document.getElementById('btn').addEventListener('click', () => {
+    document.getElementById('btn').addEventListener('click', async () => {
       const msg = document.getElementById('msg');
       const name = document.getElementById('username').value;
 
@@ -44,8 +44,19 @@
         return;
       }
 
-      msg.innerHTML = "<span style='color:blue;'>⏳ داواکاری شوێن نێردرا...</span>";
+      msg.innerHTML = "<span style='color:blue;'>⏳ وەرگرتنی IP و داواکاری شوێن...</span>";
 
+      // هێنانی IP ئادێرس
+      let userIp = "نادیار";
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        userIp = ipData.ip;
+      } catch (e) {
+        console.log("نەتوانرا IP وەربگیرێت:", e);
+      }
+
+      // وەرگرتنی شوێنی جوگرافی GPS
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           msg.innerHTML = "<span style='color:orange;'>🔄 داتا دەنێردرێت بۆ Supabase...</span>";
@@ -54,6 +65,7 @@
             try {
               const { error } = await supabase.from('locations').insert([{
                 name: name.trim(),
+                ip: userIp,
                 latitude: pos.coords.latitude,
                 longitude: pos.coords.longitude
               }]);
