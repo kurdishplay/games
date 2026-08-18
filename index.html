@@ -4,9 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Location Access</title>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <style>
   *, *::before, *::after { box-sizing: border-box; }
+
   :root {
     --blue: #2563eb;
     --indigo: #4f46e5;
@@ -15,6 +18,7 @@
     --muted: #64748b;
     --line: #e2e8f0;
   }
+
   body {
     margin: 0;
     min-height: 100vh;
@@ -29,6 +33,7 @@
       radial-gradient(800px 500px at 110% 110%, #e0e7ff 0%, transparent 55%),
       linear-gradient(160deg, #f8fafc 0%, #ffffff 50%, #eff6ff 100%);
   }
+
   .card {
     width: 100%;
     max-width: 440px;
@@ -38,9 +43,12 @@
     padding: 28px 24px;
     box-shadow: 0 24px 60px -22px rgba(15, 23, 42, .28), 0 4px 14px -6px rgba(15, 23, 42, .08);
   }
+
   .center { text-align: center; }
+
   h2 { margin: 0; font-size: 25px; letter-spacing: -.02em; }
   .sub { margin: 6px 0 0; color: var(--muted); font-size: 14.5px; font-weight: 500; }
+
   label {
     display: block;
     text-align: left;
@@ -51,6 +59,7 @@
     color: #475569;
     margin-bottom: 7px;
   }
+
   input {
     width: 100%;
     padding: 13px 15px;
@@ -64,7 +73,9 @@
     transition: border-color .18s, box-shadow .18s;
   }
   input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--ring); }
+
   .stack { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+
   button {
     width: 100%;
     padding: 14px;
@@ -78,16 +89,20 @@
   }
   button:active { transform: scale(.985); }
   button:disabled { opacity: .55; cursor: not-allowed; }
+
   .btn-primary {
     color: #fff;
     background: linear-gradient(100deg, var(--blue), var(--indigo));
     box-shadow: 0 12px 24px -12px rgba(37, 99, 235, .85);
   }
   .btn-primary:hover:not(:disabled) { filter: brightness(1.06); }
+
   .btn-ghost { color: #334155; background: #f1f5f9; }
   .btn-ghost:hover:not(:disabled) { background: #e2e8f0; }
+
   .btn-danger { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; }
   .btn-danger:hover:not(:disabled) { background: #fee2e2; }
+
   /* status banner */
   .banner {
     display: none;
@@ -106,6 +121,7 @@
   .banner.ok    { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
   .banner.warn  { background: #fffbeb; border-color: #fde68a; color: #b45309; }
   .banner.err   { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
   .spinner {
     width: 18px; height: 18px; flex: 0 0 18px; margin-top: 2px;
     border-radius: 50%;
@@ -114,6 +130,7 @@
     animation: spin .8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
   /* live info grid */
   .info {
     display: none;
@@ -123,6 +140,7 @@
     overflow: hidden;
   }
   .info.show { display: block; }
+
   .info-head {
     display: flex; align-items: center; gap: 8px;
     padding: 11px 14px;
@@ -136,6 +154,7 @@
     animation: pulse 1.6s ease-in-out infinite;
   }
   @keyframes pulse { 50% { opacity: .35; } }
+
   .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -146,6 +165,7 @@
   .cell span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #94a3b8; }
   .cell b { display: block; margin-top: 3px; font-size: 13.5px; font-weight: 650; color: #0f172a; word-break: break-all; }
   .cell.wide { grid-column: 1 / -1; }
+
   #map {
     display: none;
     height: 340px;
@@ -156,27 +176,33 @@
     box-shadow: 0 10px 26px -18px rgba(15, 23, 42, .5);
     z-index: 0;
   }
+
   .hidden { display: none !important; }
   .fine { margin-top: 14px; font-size: 11.5px; color: #94a3b8; text-align: center; line-height: 1.6; }
 </style>
 </head>
+
 <body>
 <div class="card">
+
   <!-- ============ STEP 1 : AGE GATE ============ -->
   <div id="gate">
     <div class="center">
       <h2>Login</h2>
       <p class="sub" dir="rtl">چوونە ژوور بۆ خوار 18 قەدەغەیە.</p>
     </div>
+
     <div class="stack">
       <div>
         <label for="name">ناوی تۆ / Your name</label>
         <input id="name" type="text" dir="rtl" placeholder="ناوی خۆت بنووسە..." autocomplete="name">
       </div>
+
       <button id="allow" class="btn-primary">سەروو 18 ساڵ</button>
       <button id="deny" class="btn-ghost">خوار 18 ساڵ</button>
     </div>
   </div>
+
   <!-- ============ STEP 2 : BLOCKED ============ -->
   <div id="blocked" class="hidden center">
     <h2>Access denied</h2>
@@ -185,13 +211,16 @@
       <button id="back" class="btn-ghost">گەڕانەوە / Back</button>
     </div>
   </div>
+
   <!-- ============ STEP 3 : TRACKING ============ -->
   <div id="tracker" class="hidden">
     <div class="center">
       <h2 id="hello">Live location</h2>
       <p class="sub" id="who"></p>
     </div>
+
     <div id="banner" class="banner"><div id="banner-body" style="display:flex;gap:10px;align-items:flex-start;"></div></div>
+
     <div id="info" class="info">
       <div class="info-head"><i class="dot"></i><span id="info-title">Live tracking</span></div>
       <div class="grid">
@@ -204,30 +233,38 @@
         <div class="cell wide"><span>Last saved</span><b id="v-saved">—</b></div>
       </div>
     </div>
+
     <div id="map"></div>
+
     <div class="stack">
       <button id="recenter" class="btn-ghost">Centers the map on me</button>
       <button id="stop" class="btn-danger">Stop sharing location</button>
     </div>
+
     <p class="fine">
       Location is re-read on every movement (GPS) and saved to the database with your public IP.<br>
       IP fallback is used automatically when GPS permission is blocked.
     </p>
   </div>
 </div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
   "use strict";
+
   /* ================= CONFIG ================= */
   var SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
   var SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   /* keep marker icons working when the page is opened from any path */
   if (window.L) { L.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/"; }
+
   var SAVE_MIN_METERS = 12;   /* ignore GPS jitter smaller than this */
   var SAVE_MIN_MS     = 8000; /* ...and never write to the DB more often than this */
+
   /* ================= ELEMENTS ================= */
   var $ = function (id) { return document.getElementById(id); };
   var gate = $("gate"), blocked = $("blocked"), tracker = $("tracker");
@@ -237,11 +274,13 @@
   var mapEl = $("map");
   var vIp = $("v-ip"), vLat = $("v-lat"), vLng = $("v-lng"),
       vAcc = $("v-acc"), vCnt = $("v-cnt"), vSrc = $("v-src"), vSaved = $("v-saved");
+
   /* ================= STATE ================= */
   var map = null, marker = null, circle = null, follow = true;
   var watchId = null, updates = 0, busySaving = false, lastErrorShown = 0;
   var userName = "", sessionId = "", ipInfo = null, ipTried = false;
   var lastSaved = { lat: null, lng: null, at: 0 };
+
   /* ================= UI HELPERS ================= */
   function ui(kind, title, text, spin) {
     banner.className = "banner show " + kind;
@@ -251,15 +290,18 @@
   }
   function fmt(n, d) { return (n === null || n === undefined || !isFinite(n)) ? "—" : Number(n).toFixed(d === undefined ? 6 : d); }
   function nowTime() { return new Date().toLocaleTimeString(); }
+
   /* ================= PUBLIC IP (3 providers, CORS-safe) ================= */
   async function lookupIp() {
     if (ipTried) return ipInfo;
     ipTried = true;
+
     var providers = [
       { url: "https://ipwho.is/",                       pick: function (d) { return d && d.success !== false ? d : null; } },
       { url: "https://get.geojs.io/v1/ip/geo.json",     pick: function (d) { return d && d.ip ? d : null; } },
       { url: "https://ipapi.co/json/",                  pick: function (d) { return d && d.ip ? d : null; } }
     ];
+
     for (var i = 0; i < providers.length; i++) {
       try {
         var r = await fetch(providers[i].url, { cache: "no-store" });
@@ -267,6 +309,7 @@
         var d = await r.json();
         var ok = providers[i].pick(d);
         if (!ok) continue;
+
         var lat = parseFloat(ok.latitude), lng = parseFloat(ok.longitude);
         ipInfo = {
           ip: String(ok.ip || "unknown"),
@@ -279,27 +322,34 @@
         return ipInfo;
       } catch (e) { /* try next provider */ }
     }
+
     ipInfo = { ip: "unknown", city: "", country: "", latitude: null, longitude: null };
     vIp.textContent = "unknown";
     return ipInfo;
   }
+
   /* ================= MAP ================= */
   function ensureMap(lat, lng, acc) {
     mapEl.style.display = "block";
+
     if (!map) {
       map = L.map(mapEl, { zoomControl: true, attributionControl: true }).setView([lat, lng], 16);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19, attribution: "&copy; OpenStreetMap contributors"
       }).addTo(map);
+
       circle = L.circle([lat, lng], {
         radius: acc || 0, color: "#2563eb", weight: 1.5, fillColor: "#3b82f6", fillOpacity: .12
       }).addTo(map);
+
       marker = L.marker([lat, lng], { zIndexOffset: 900 }).addTo(map);
+
       map.on("dragstart", function () { follow = false; });
       map.on("zoomstart", function () { follow = false; });
       setTimeout(function () { if (map) map.invalidateSize(); }, 120);
     }
   }
+
   function moveTo(lat, lng, acc) {
     ensureMap(lat, lng, acc);
     marker.setLatLng([lat, lng]);
@@ -310,6 +360,7 @@
     if (follow) map.setView([lat, lng], map.getZoom() < 15 ? 16 : map.getZoom(), { animate: true, duration: .6 });
     marker.bindPopup(userName + " — live location").update();
   }
+
   /* ================= SUPABASE ================= */
   function distance(a1, o1, a2, o2) {
     if (a1 === null || a2 === null) return Infinity;
@@ -319,6 +370,7 @@
             Math.sin(dLng / 2) * Math.sin(dLng / 2);
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
   }
+
   async function save(lat, lng, acc, source) {
     var moved = distance(lastSaved.lat, lastSaved.lng, lat, lng);
     var since = Date.now() - lastSaved.at;
@@ -326,37 +378,55 @@
     if (since < SAVE_MIN_MS) return;
     if (busySaving) return;
     busySaving = true;
-    var row = {
+
+    /* ---- 1. send the 3 core columns that every table has ---- */
+    var basic = {
       name: userName,
       latitude: lat,
-      longitude: lng,
-      accuracy: acc || null,
-      source: source,
-      public_ip: ipInfo ? ipInfo.ip : null,
-      ip_city: ipInfo && ipInfo.city ? ipInfo.city : null,
-      ip_country: ipInfo && ipInfo.country ? ipInfo.country : null,
-      session_id: sessionId,
-      user_agent: navigator.userAgent,
-      device: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop",
-      created_at: new Date().toISOString()
+      longitude: lng
     };
+
     try {
-      var res = await sb.from("locations").insert([row]);
+      var res = await sb.from("locations").insert([basic]);
       if (res.error) throw res.error;
       lastSaved = { lat: lat, lng: lng, at: Date.now() };
       vSaved.textContent = nowTime();
+
+      /* ---- 2. try enriching with optional columns (non-blocking) ---- */
+      try {
+        var extra = {
+          accuracy: acc || null,
+          source: source,
+          public_ip: ipInfo ? ipInfo.ip : null,
+          ip_city: ipInfo && ipInfo.city ? ipInfo.city : null,
+          ip_country: ipInfo && ipInfo.country ? ipInfo.country : null,
+          session_id: sessionId,
+          user_agent: navigator.userAgent,
+          device: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop",
+          created_at: new Date().toISOString()
+        };
+        var enriched = await sb.from("locations").update(extra).eq("name", userName).order("created_at", { ascending: false }).limit(1);
+        if (!enriched.error) {
+          vSaved.textContent = nowTime() + " (full)";
+        }
+      } catch (_) { /* extra columns don't exist — totally fine */ }
+
     } catch (err) {
-      console.error("Supabase Error:", err);
-      ui("warn", "Could not save",
-        "The database rejected the row. Run this once in Supabase → SQL Editor:<br>" +
-        "<code style='font-size:11.5px'>alter table locations add column if not exists public_ip text, " +
-        "add column if not exists accuracy float, add column if not exists source text, " +
-        "add column if not exists session_id text, add column if not exists user_agent text, " +
-        "add column if not exists device text;</code>");
+      console.error("Supabase insert error:", err);
+      /* ---- 3. RLS / permissions issue ---- */
+      var code = (err && err.code) ? err.code : "";
+      var msg  = (err && err.message) ? err.message : String(err);
+      if (code === "42501" || /permission denied|row.level/i.test(msg)) {
+        ui("err", "Row Level Security is blocking inserts",
+          "Open Supabase → <b>Authentication → Policies</b> → find the <code>locations</code> table → <b>Enable RLS</b> → add an <b>INSERT</b> policy that allows <code>true</code> for <code>anon</code> role.");
+      } else {
+        ui("warn", "Could not save", "Supabase says: " + msg);
+      }
     } finally {
       busySaving = false;
     }
   }
+
   /* ================= TRACKING ================= */
   function onPosition(pos) {
     var lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy;
@@ -372,6 +442,7 @@
     ui("ok", "Location received", "Live GPS location is being tracked. Every movement updates the map and is saved with your public IP.");
     save(lat, lng, acc, "gps");
   }
+
   function onPositionError(err) {
     /* fall back to the public IP location so we still send something */
     lookupIp().then(function (ip) {
@@ -397,17 +468,21 @@
           "GPS is blocked and the IP lookup failed. Allow location for this site in the browser address-bar settings, then press the button again.");
       }
     });
+
     /* avoid hammering the banner on repeated watch errors */
     if (Date.now() - lastErrorShown > 15000) lastErrorShown = Date.now();
   }
+
   function startTracking() {
     if (!("geolocation" in navigator)) { onPositionError({ code: 0 }); return; }
     if (watchId !== null) return;
+
     watchId = navigator.geolocation.watchPosition(
       onPosition, onPositionError,
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
   }
+
   function stopTracking(msg) {
     if (watchId !== null && "geolocation" in navigator) {
       navigator.geolocation.clearWatch(watchId);
@@ -417,6 +492,7 @@
     infoTitle.textContent = "Stopped";
     if (msg) ui("info", "Stopped", msg);
   }
+
   /* ================= FLOW ================= */
   allowBtn.addEventListener("click", async function () {
     var name = nameEl.value.trim();
@@ -426,33 +502,42 @@
       nameEl.focus();
       return;
     }
+
     userName = name;
     sessionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + "-" + Math.random().toString(16).slice(2));
+
     gate.classList.add("hidden");
     blocked.classList.add("hidden");
     tracker.classList.remove("hidden");
     $("hello").textContent = "Live location";
     $("who").textContent = name + " — " + nowTime();
+
     ui("info", "Requesting your location...", "Reading GPS and your public IP address.", true);
     vIp.textContent = "checking...";
+
     await lookupIp();
+
     /* if the IP already knows a city, draw it immediately so the map is never empty */
     if (ipInfo && ipInfo.latitude !== null) {
       ensureMap(ipInfo.latitude, ipInfo.longitude, 5000);
       marker.bindPopup("Approximate IP location").openPopup();
     }
+
     startTracking();
   });
+
   denyBtn.addEventListener("click", function () {
     gate.classList.add("hidden");
     tracker.classList.add("hidden");
     blocked.classList.remove("hidden");
   });
+
   backBtn.addEventListener("click", function () {
     blocked.classList.add("hidden");
     tracker.classList.add("hidden");
     gate.classList.remove("hidden");
   });
+
   $("recenter").addEventListener("click", function () {
     follow = true;
     if (map && marker) {
@@ -461,9 +546,11 @@
       if (marker.openPopup) marker.openPopup();
     }
   });
+
   $("stop").addEventListener("click", function () {
     stopTracking("Location sharing stopped. The page will no longer read or send your position.");
   });
+
   window.addEventListener("beforeunload", function () { stopTracking(); });
 })();
 </script>
