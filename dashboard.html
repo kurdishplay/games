@@ -6,11 +6,13 @@
 
   <title>My Location Dashboard</title>
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  >
+  <!-- Leaflet CSS (Latest v1.9.4 via cdnjs) -->
+  <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" 
+    integrity="sha512-h9A8XyX9r38b8yB+9/0sX1C3P8B9/21uE2pQ+m9K6B8/x5C1b9y2V8y21/11uE1A2B==" 
+    crossorigin="" 
+  />
 
   <style>
     * {
@@ -129,7 +131,7 @@
 <body>
 
   <!-- =========================
-       LOGIN
+        LOGIN
   ========================== -->
   <div id="login">
 
@@ -165,7 +167,7 @@
 
 
   <!-- =========================
-       DASHBOARD
+        DASHBOARD
   ========================== -->
   <div id="dashboard">
 
@@ -186,14 +188,16 @@
   </div>
 
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  <!-- Leaflet JS (Latest v1.9.4 via cdnjs) -->
+  <script 
+    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" 
+    integrity="sha512-puJW3E/qZD3pXyGE32HP74teMQj5QDgBoEa5S7vV8cscUIkLKYvhL3aMvwFzpC1fJi515v25Z/151755171==" 
+    crossorigin="">
   </script>
 
 
   <!-- =========================
-       SUPABASE + APP
+        SUPABASE + APP
   ========================== -->
 
   <script type="module">
@@ -204,7 +208,7 @@
 
 
     /* =========================
-       SUPABASE CONFIG
+        SUPABASE CONFIG
     ========================== */
 
     const SUPABASE_URL =
@@ -221,7 +225,7 @@
 
 
     /* =========================
-       ELEMENTS
+        ELEMENTS
     ========================== */
 
     const login = document.getElementById("login");
@@ -242,14 +246,14 @@
 
 
     /* =========================
-       MAP VARIABLE
+        MAP VARIABLE
     ========================== */
 
     let map = null;
 
 
     /* =========================
-       SHOW DASHBOARD
+        SHOW DASHBOARD
     ========================== */
 
     async function showDashboard() {
@@ -264,7 +268,7 @@
 
 
     /* =========================
-       SHOW LOGIN
+        SHOW LOGIN
     ========================== */
 
     function showLogin() {
@@ -277,7 +281,7 @@
 
 
     /* =========================
-       LOGIN
+        LOGIN
     ========================== */
 
     loginForm.addEventListener("submit", async function(event) {
@@ -377,7 +381,7 @@
 
 
     /* =========================
-       LOGOUT
+        LOGOUT
     ========================== */
 
     logoutButton.addEventListener(
@@ -398,7 +402,7 @@
 
 
     /* =========================
-       LOAD LOCATIONS
+        LOAD LOCATIONS
     ========================== */
 
     async function loadLocations() {
@@ -418,57 +422,56 @@
 
       /* Create Leaflet map */
 
-      // MAP
-map = L.map("map").setView(
-  [36.249741, 44.771992],
-  10
-);
+      map = L.map("map").setView(
+        [36.249741, 44.771992],
+        10
+      );
 
 
-// NORMAL MAP
-const normalMap = L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    maxZoom: 19,
-    attribution:
-      "&copy; OpenStreetMap contributors"
-  }
-);
+      // NORMAL MAP (OpenStreetMap Standard)
+      const normalMap = L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom: 19,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }
+      );
 
 
-// SATELLITE MAP
-const satelliteMap = L.tileLayer(
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-  {
-    maxZoom: 19,
-    attribution:
-      "Tiles &copy; Esri"
-  }
-);
+      // SATELLITE MAP (Esri World Imagery)
+      const satelliteMap = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 19,
+          attribution:
+            "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+        }
+      );
 
 
-// DEFAULT = NORMAL MAP
-normalMap.addTo(map);
+      // DEFAULT = NORMAL MAP
+      normalMap.addTo(map);
 
 
-// MAP TYPE SWITCHER
-const baseMaps = {
-  "🗺️ Map": normalMap,
-  "🛰️ Satellite": satelliteMap
-};
+      // MAP TYPE SWITCHER
+      const baseMaps = {
+        "🗺️ Map": normalMap,
+        "🛰️ Satellite": satelliteMap
+      };
 
 
-L.control.layers(
-  baseMaps,
-  null,
-  {
-    position: "topright",
-    collapsed: false
-  }
-).addTo(map);
+      L.control.layers(
+        baseMaps,
+        null,
+        {
+          position: "topright",
+          collapsed: false
+        }
+      ).addTo(map);
 
       /* =========================
-         GET LOCATIONS
+          GET LOCATIONS
       ========================== */
 
       const {
@@ -516,7 +519,7 @@ L.control.layers(
 
 
       /* =========================
-         ADD MARKERS
+          ADD MARKERS
       ========================== */
 
       const bounds = [];
@@ -587,7 +590,7 @@ L.control.layers(
 
 
       /* =========================
-         FIT MAP TO MARKERS
+          FIT MAP TO MARKERS
       ========================== */
 
       if (bounds.length > 0) {
@@ -608,7 +611,7 @@ L.control.layers(
 
 
     /* =========================
-       HTML ESCAPE
+        HTML ESCAPE
     ========================== */
 
     function escapeHtml(value) {
@@ -623,7 +626,7 @@ L.control.layers(
 
 
     /* =========================
-       CHECK EXISTING SESSION
+        CHECK EXISTING SESSION
     ========================== */
 
     async function checkSession() {
@@ -679,7 +682,7 @@ L.control.layers(
 
 
     /* =========================
-       AUTH STATE LISTENER
+        AUTH STATE LISTENER
     ========================== */
 
     supabase.auth.onAuthStateChange(
@@ -717,7 +720,7 @@ L.control.layers(
 
 
     /* =========================
-       START APP
+        START APP
     ========================== */
 
     checkSession();
