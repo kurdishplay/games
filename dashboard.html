@@ -183,7 +183,6 @@
     .location-card h4 {
       font-size: 15px;
       margin-bottom: 4px;
-
     }
 
     .location-card p {
@@ -199,9 +198,13 @@
       border-top: 1px solid var(--border-color);
     }
 
+    /* MAP FIXED DIMENSIONS */
     #map {
       flex: 1;
+      width: 100%;
       height: 100%;
+      min-height: 400px;
+      background: #0f172a;
     }
 
     @media (max-width: 768px) {
@@ -286,7 +289,15 @@
       login.style.display = "none";
       dashboard.style.display = "flex";
       errorBox.innerText = "";
+      
       await loadLocations();
+
+      // Recalculate Leaflet tile layout after changing display to flex
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize();
+        }
+      }, 200);
     }
 
     function showLogin() {
@@ -295,7 +306,7 @@
       emailInput.focus();
     }
 
-    // LOGIN
+    // LOGIN HANDLER
     loginForm.addEventListener("submit", async function(event) {
       event.preventDefault();
       errorBox.style.color = "var(--text-sub)";
@@ -317,7 +328,7 @@
       await showDashboard();
     });
 
-    // LOGOUT
+    // LOGOUT HANDLER
     logoutButton.addEventListener("click", async () => {
       await supabase.auth.signOut();
       if (map) {
@@ -337,19 +348,10 @@
         map = null;
       }
 
+      // Initialize Leaflet Map
       map = L.map("map").setView([36.249741, 44.771992], 10);
 
-      // SATELLITE TILE LAYERS
-      // High-res imagery layer
-      const satelliteClarity = L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        {
-          maxZoom: 19,
-          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        }
-      );
-
-      // OpenStreetMap Normal
+      // OpenStreetMap Normal Tile Layer
       const normalMap = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
@@ -358,14 +360,25 @@
         }
       );
 
-      satelliteClarity.addTo(map);
+      // Satellite Tile Layer (Esri)
+      const satelliteClarity = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 19,
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }
+      );
 
+      // Add default tile layer
+      normalMap.addTo(map);
+
+      // Add Layer Control Switcher
       L.control.layers({
-        "🛰️ High-Res Satellite": satelliteClarity,
-        "🗺️ Standard Map": normalMap
+        "🗺️ Standard Map": normalMap,
+        "🛰️ High-Res Satellite": satelliteClarity
       }, null, { position: "topright" }).addTo(map);
 
-      // FETCH FROM SUPABASE
+      // FETCH DATA FROM SUPABASE
       const { data, error } = await supabase
         .from("locations")
         .select("latitude, longitude, name, created_at")
@@ -373,12 +386,12 @@
 
       if (error) {
         statusBox.style.color = "var(--danger)";
-        statusBox.innerText = "Error: " + error.message;
+        statusBox.innerText = "Error loading locations: " + error.message;
         return;
       }
 
       if (!data || data.length === 0) {
-        statusBox.innerText = "No location logs available.";
+        statusBox.innerText = "No locations found in database.";
         return;
       }
 
@@ -387,26 +400,26 @@
     }
 
     function renderLocations(items) {
-      // Clear existing markers
+      // Clear previous markers
       markersList.forEach(m => map.removeLayer(m));
       markersList = [];
       locationList.innerHTML = "";
 
       const bounds = [];
 
-      items.forEach((loc, index) => {
+      items.forEach((loc) => {
         const lat = Number(loc.latitude);
         const lng = Number(loc.longitude);
 
         if (isNaN(lat) || isNaN(lng)) return;
 
-        const name = loc.name || "Anonymous";
+        const name = loc.name || "Anonymous User";
         const dateStr = loc.created_at ? new Date(loc.created_at).toLocaleString() : "";
 
-        // Leaflet Marker
+        // Add Marker to Leaflet Map
         const marker = L.marker([lat, lng]).addTo(map);
         marker.bindPopup(`
-          <div style="color: #000;">
+          <div style="color: #000; font-family: sans-serif;">
             <strong>📍 ${escapeHtml(name)}</strong><br>
             <small>${escapeHtml(dateStr)}</small>
           </div>
@@ -415,7 +428,7 @@
         markersList.push(marker);
         bounds.push([lat, lng]);
 
-        // Sidebar Item
+        // Add Sidebar Item
         const card = document.createElement("div");
         card.className = "location-card";
         card.innerHTML = `
@@ -435,7 +448,7 @@
       }
 
       statusBox.style.color = "var(--accent)";
-      statusBox.innerText = `Showing ${items.length} records`;
+      statusBox.innerText = `Showing ${items.length} logged locations`;
     }
 
     // SEARCH FILTER
@@ -454,7 +467,7 @@
         .replaceAll(">", "&gt;");
     }
 
-    // CHECK AUTH SESSION
+    // AUTH SESSION CHECK
     async function checkSession() {
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
