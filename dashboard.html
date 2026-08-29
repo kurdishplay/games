@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Dashboard Pro</title>
 
-  <title>My Location Dashboard</title>
-
-  <!-- Leaflet CSS (Latest v1.9.4 via cdnjs) -->
+  <!-- Leaflet CSS -->
   <link 
     rel="stylesheet" 
     href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" 
@@ -15,717 +14,457 @@
   />
 
   <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --border-color: #334155;
+      --danger: #ef4444;
+    }
+
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* LOGIN */
+    /* LOGIN CONTAINER */
     #login {
-      max-width: 380px;
-      margin: 80px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.10);
+      max-width: 400px;
+      margin: 100px auto;
+      background: var(--card-bg);
+      padding: 35px 30px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
     #login h2 {
       text-align: center;
-      margin-top: 0;
-      margin-bottom: 25px;
+      margin-bottom: 24px;
+      font-size: 24px;
     }
 
     input {
-      display: block;
       width: 100%;
-      padding: 13px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      font-size: 16px;
+      background: #0f172a;
+      color: var(--text-main);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
     }
 
     input:focus {
-      outline: none;
-      border-color: #007aff;
+      border-color: var(--accent);
     }
 
     button {
-      display: block;
       width: 100%;
-      padding: 13px;
-      margin-top: 10px;
+      padding: 12px;
       border: none;
       border-radius: 8px;
-      background: #007aff;
+      background: var(--accent);
       color: white;
-      font-size: 16px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.2s;
     }
 
     button:hover {
-      background: #0066d6;
+      background: var(--accent-hover);
     }
 
     button:disabled {
-      background: #999;
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
     #error {
       margin-top: 15px;
       text-align: center;
-      color: #d00;
-      min-height: 20px;
-      line-height: 1.5;
+      font-size: 14px;
     }
 
-    /* DASHBOARD */
+    /* MAIN DASHBOARD LAYOUT */
     #dashboard {
       display: none;
+      height: 100vh;
+      flex-direction: column;
     }
 
     #dashboardHeader {
-      background: white;
-      padding: 15px 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      position: relative;
+      background: var(--card-bg);
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       z-index: 1000;
     }
 
     #dashboardHeader h2 {
-      margin: 0;
-      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
     }
 
     #logoutButton {
-      max-width: 120px;
-      margin: 10px auto 0;
-      background: #dc3545;
+      width: auto;
+      padding: 8px 16px;
+      background: var(--danger);
+      font-size: 14px;
     }
 
     #logoutButton:hover {
-      background: #bb2d3b;
+      background: #dc2626;
+    }
+
+    /* DASHBOARD CONTENT GRID */
+    .dashboard-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 65px);
+      position: relative;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header input {
+      margin-bottom: 0;
+    }
+
+    .location-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .location-card {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .location-card:hover {
+      border-color: var(--accent);
+    }
+
+    .location-card h4 {
+      font-size: 15px;
+      margin-bottom: 4px;
+
+    }
+
+    .location-card p {
+      font-size: 12px;
+      color: var(--text-sub);
     }
 
     #status {
-      text-align: center;
       padding: 10px;
-      background: #fff;
-      color: #555;
+      font-size: 13px;
+      text-align: center;
+      color: var(--text-sub);
+      border-top: 1px solid var(--border-color);
     }
 
     #map {
-      height: 80vh;
-      width: 100%;
+      flex: 1;
+      height: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        flex-direction: column-reverse;
+      }
+      .sidebar {
+        width: 100%;
+        height: 250px;
+      }
     }
   </style>
 </head>
-
 <body>
 
-  <!-- =========================
-        LOGIN
-  ========================== -->
+  <!-- LOGIN MODULE -->
   <div id="login">
-
     <h2>🔐 Dashboard Login</h2>
-
     <form id="loginForm">
-
-      <input
-        type="email"
-        id="email"
-        placeholder="Email"
-        autocomplete="email"
-        required
-      >
-
-      <input
-        type="password"
-        id="password"
-        placeholder="Password"
-        autocomplete="current-password"
-        required
-      >
-
-      <button type="submit" id="loginButton">
-        Login
-      </button>
-
+      <input type="email" id="email" placeholder="Email" autocomplete="email" required>
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" id="loginButton">Sign In</button>
     </form>
-
     <div id="error"></div>
-
   </div>
 
-
-  <!-- =========================
-        DASHBOARD
-  ========================== -->
+  <!-- DASHBOARD MODULE -->
   <div id="dashboard">
-
     <div id="dashboardHeader">
-      <h2>📍 My Location Dashboard</h2>
-
-      <button type="button" id="logoutButton">
-        Logout
-      </button>
+      <h2>📍 Geospatial Location Tracker</h2>
+      <button type="button" id="logoutButton">Logout</button>
     </div>
 
-    <div id="status">
-      Loading locations...
+    <div class="dashboard-container">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <input type="text" id="searchInput" placeholder="Search locations...">
+        </div>
+        <div class="location-list" id="locationList">
+          <!-- Dynamically Populated -->
+        </div>
+        <div id="status">Loading data...</div>
+      </div>
+
+      <div id="map"></div>
     </div>
-
-    <div id="map"></div>
-
   </div>
 
-
-  <!-- Leaflet JS (Latest v1.9.4 via cdnjs) -->
+  <!-- Leaflet JS -->
   <script 
     src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" 
     integrity="sha512-puJW3E/qZD3pXyGE32HP74teMQj5QDgBoEa5S7vV8cscUIkLKYvhL3aMvwFzpC1fJi515v25Z/151755171==" 
     crossorigin="">
   </script>
 
-
-  <!-- =========================
-        SUPABASE + APP
-  ========================== -->
-
+  <!-- SUPABASE & APP LOGIC -->
   <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    import {
-      createClient
-    } from "https://esm.sh/@supabase/supabase-js@2";
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
-    /* =========================
-        SUPABASE CONFIG
-    ========================== */
-
-    const SUPABASE_URL =
-      "https://mxichdljcrlcomnhkcin.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-
-
-    const supabase = createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-
-    /* =========================
-        ELEMENTS
-    ========================== */
-
+    // Elements
     const login = document.getElementById("login");
     const dashboard = document.getElementById("dashboard");
-
     const loginForm = document.getElementById("loginForm");
     const loginButton = document.getElementById("loginButton");
-
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
-
     const errorBox = document.getElementById("error");
-
     const statusBox = document.getElementById("status");
-
-    const logoutButton =
-      document.getElementById("logoutButton");
-
-
-    /* =========================
-        MAP VARIABLE
-    ========================== */
+    const logoutButton = document.getElementById("logoutButton");
+    const locationList = document.getElementById("locationList");
+    const searchInput = document.getElementById("searchInput");
 
     let map = null;
-
-
-    /* =========================
-        SHOW DASHBOARD
-    ========================== */
+    let markersList = [];
+    let locationsData = [];
 
     async function showDashboard() {
-
       login.style.display = "none";
-      dashboard.style.display = "block";
-
+      dashboard.style.display = "flex";
       errorBox.innerText = "";
-
       await loadLocations();
     }
 
-
-    /* =========================
-        SHOW LOGIN
-    ========================== */
-
     function showLogin() {
-
       dashboard.style.display = "none";
       login.style.display = "block";
-
       emailInput.focus();
     }
 
-
-    /* =========================
-        LOGIN
-    ========================== */
-
+    // LOGIN
     loginForm.addEventListener("submit", async function(event) {
-
       event.preventDefault();
-
-      errorBox.style.color = "#555";
-      errorBox.innerText = "Logging in...";
-
+      errorBox.style.color = "var(--text-sub)";
+      errorBox.innerText = "Authenticating...";
       loginButton.disabled = true;
-      loginButton.innerText = "Logging in...";
 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailInput.value.trim(),
+        password: passwordInput.value
+      });
 
-      const email =
-        emailInput.value.trim();
-
-      const password =
-        passwordInput.value;
-
-
-      if (!email || !password) {
-
-        errorBox.style.color = "red";
-        errorBox.innerText =
-          "Please enter your email and password.";
-
+      if (error) {
+        errorBox.style.color = "var(--danger)";
+        errorBox.innerText = "Authentication failed: " + error.message;
         loginButton.disabled = false;
-        loginButton.innerText = "Login";
-
         return;
       }
 
-
-      try {
-
-        const {
-          data,
-          error
-        } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-
-        if (error) {
-
-          console.error(
-            "Supabase login error:",
-            error
-          );
-
-          errorBox.style.color = "red";
-
-          errorBox.innerText =
-            "Login failed: " + error.message;
-
-          loginButton.disabled = false;
-          loginButton.innerText = "Login";
-
-          return;
-        }
-
-
-        console.log(
-          "Login successful:",
-          data
-        );
-
-
-        errorBox.style.color = "green";
-        errorBox.innerText =
-          "Login successful ✓";
-
-
-        await showDashboard();
-
-
-      } catch (err) {
-
-        console.error(
-          "Unexpected login error:",
-          err
-        );
-
-        errorBox.style.color = "red";
-
-        errorBox.innerText =
-          "Unexpected error: " +
-          (err.message || err);
-
-
-        loginButton.disabled = false;
-        loginButton.innerText = "Login";
-      }
-
+      await showDashboard();
     });
 
-
-    /* =========================
-        LOGOUT
-    ========================== */
-
-    logoutButton.addEventListener(
-      "click",
-      async function() {
-
-        await supabase.auth.signOut();
-
-        if (map) {
-          map.remove();
-          map = null;
-        }
-
-        showLogin();
-
+    // LOGOUT
+    logoutButton.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      if (map) {
+        map.remove();
+        map = null;
       }
-    );
+      showLogin();
+    });
 
-
-    /* =========================
-        LOAD LOCATIONS
-    ========================== */
-
+    // LOAD MAP AND DATA
     async function loadLocations() {
-
-      statusBox.innerText =
-        "Loading locations...";
-
-
-      /* Prevent duplicate maps */
+      statusBox.innerText = "Fetching locations...";
+      locationList.innerHTML = "";
 
       if (map) {
-
         map.remove();
         map = null;
       }
 
+      map = L.map("map").setView([36.249741, 44.771992], 10);
 
-      /* Create Leaflet map */
-
-      map = L.map("map").setView(
-        [36.249741, 44.771992],
-        10
-      );
-
-
-      // NORMAL MAP (OpenStreetMap Standard)
-      const normalMap = L.tileLayer(
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          maxZoom: 19,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }
-      );
-
-
-      // SATELLITE MAP (Esri World Imagery)
-      const satelliteMap = L.tileLayer(
+      // SATELLITE TILE LAYERS
+      // High-res imagery layer
+      const satelliteClarity = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         {
           maxZoom: 19,
-          attribution:
-            "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
         }
       );
 
-
-      // DEFAULT = NORMAL MAP
-      normalMap.addTo(map);
-
-
-      // MAP TYPE SWITCHER
-      const baseMaps = {
-        "🗺️ Map": normalMap,
-        "🛰️ Satellite": satelliteMap
-      };
-
-
-      L.control.layers(
-        baseMaps,
-        null,
+      // OpenStreetMap Normal
+      const normalMap = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
-          position: "topright",
-          collapsed: false
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
         }
-      ).addTo(map);
+      );
 
-      /* =========================
-          GET LOCATIONS
-      ========================== */
+      satelliteClarity.addTo(map);
 
-      const {
-        data,
-        error
-      } = await supabase
+      L.control.layers({
+        "🛰️ High-Res Satellite": satelliteClarity,
+        "🗺️ Standard Map": normalMap
+      }, null, { position: "topright" }).addTo(map);
+
+      // FETCH FROM SUPABASE
+      const { data, error } = await supabase
         .from("locations")
-        .select(
-          "latitude, longitude, name, created_at"
-        )
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
+        .select("latitude, longitude, name, created_at")
+        .order("created_at", { ascending: false });
 
       if (error) {
-
-        console.error(
-          "Location loading error:",
-          error
-        );
-
-        statusBox.style.color = "red";
-
-        statusBox.innerText =
-          "Could not load locations: " +
-          error.message;
-
+        statusBox.style.color = "var(--danger)";
+        statusBox.innerText = "Error: " + error.message;
         return;
       }
-
 
       if (!data || data.length === 0) {
-
-        statusBox.style.color = "#555";
-
-        statusBox.innerText =
-          "No locations found.";
-
+        statusBox.innerText = "No location logs available.";
         return;
       }
 
+      locationsData = data;
+      renderLocations(locationsData);
+    }
 
-      /* =========================
-          ADD MARKERS
-      ========================== */
+    function renderLocations(items) {
+      // Clear existing markers
+      markersList.forEach(m => map.removeLayer(m));
+      markersList = [];
+      locationList.innerHTML = "";
 
       const bounds = [];
 
+      items.forEach((loc, index) => {
+        const lat = Number(loc.latitude);
+        const lng = Number(loc.longitude);
 
-      data.forEach(function(location) {
+        if (isNaN(lat) || isNaN(lng)) return;
 
-        if (
-          location.latitude == null ||
-          location.longitude == null
-        ) {
-          return;
-        }
+        const name = loc.name || "Anonymous";
+        const dateStr = loc.created_at ? new Date(loc.created_at).toLocaleString() : "";
 
-
-        const latitude =
-          Number(location.latitude);
-
-        const longitude =
-          Number(location.longitude);
-
-
-        if (
-          Number.isNaN(latitude) ||
-          Number.isNaN(longitude)
-        ) {
-          return;
-        }
-
-
-        const marker =
-          L.marker([
-            latitude,
-            longitude
-          ]).addTo(map);
-
-
-        const name =
-          location.name || "Unknown";
-
-
-        const createdAt =
-          location.created_at
-            ? new Date(
-                location.created_at
-              ).toLocaleString()
-            : "";
-
-
+        // Leaflet Marker
+        const marker = L.marker([lat, lng]).addTo(map);
         marker.bindPopup(`
-          <div style="min-width:150px;">
-            <strong>📍 ${escapeHtml(name)}</strong>
-            ${
-              createdAt
-                ? `<br><small>${escapeHtml(createdAt)}</small>`
-                : ""
-            }
+          <div style="color: #000;">
+            <strong>📍 ${escapeHtml(name)}</strong><br>
+            <small>${escapeHtml(dateStr)}</small>
           </div>
         `);
 
+        markersList.push(marker);
+        bounds.push([lat, lng]);
 
-        bounds.push([
-          latitude,
-          longitude
-        ]);
+        // Sidebar Item
+        const card = document.createElement("div");
+        card.className = "location-card";
+        card.innerHTML = `
+          <h4>${escapeHtml(name)}</h4>
+          <p>${escapeHtml(dateStr)}</p>
+        `;
+        card.onclick = () => {
+          map.setView([lat, lng], 16);
+          marker.openPopup();
+        };
 
+        locationList.appendChild(card);
       });
 
-
-      /* =========================
-          FIT MAP TO MARKERS
-      ========================== */
-
       if (bounds.length > 0) {
-
-        map.fitBounds(bounds, {
-          padding: [30, 30]
-        });
-
+        map.fitBounds(bounds, { padding: [40, 40] });
       }
 
-
-      statusBox.style.color = "green";
-
-      statusBox.innerText =
-        `${bounds.length} location(s) found.`;
-
+      statusBox.style.color = "var(--accent)";
+      statusBox.innerText = `Showing ${items.length} records`;
     }
 
+    // SEARCH FILTER
+    searchInput.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = locationsData.filter(item => 
+        (item.name && item.name.toLowerCase().includes(query))
+      );
+      renderLocations(filtered);
+    });
 
-    /* =========================
-        HTML ESCAPE
-    ========================== */
-
-    function escapeHtml(value) {
-
-      return String(value)
+    function escapeHtml(val) {
+      return String(val)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replaceAll(">", "&gt;");
     }
 
-
-    /* =========================
-        CHECK EXISTING SESSION
-    ========================== */
-
+    // CHECK AUTH SESSION
     async function checkSession() {
-
-      try {
-
-        const {
-          data,
-          error
-        } = await supabase.auth.getSession();
-
-
-        if (error) {
-
-          console.error(
-            "Session error:",
-            error
-          );
-
-          return;
-        }
-
-
-        if (data.session) {
-
-          console.log(
-            "Existing session found."
-          );
-
-          await showDashboard();
-
-        } else {
-
-          console.log(
-            "No active session."
-          );
-
-          showLogin();
-
-        }
-
-      } catch (err) {
-
-        console.error(
-          "Session check failed:",
-          err
-        );
-
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        await showDashboard();
+      } else {
         showLogin();
       }
-
     }
 
-
-    /* =========================
-        AUTH STATE LISTENER
-    ========================== */
-
-    supabase.auth.onAuthStateChange(
-      async function(event, session) {
-
-        console.log(
-          "Auth event:",
-          event
-        );
-
-        if (
-          event === "SIGNED_IN" &&
-          session
-        ) {
-
-          await showDashboard();
-
-        }
-
-        if (
-          event === "SIGNED_OUT"
-        ) {
-
-          if (map) {
-
-            map.remove();
-            map = null;
-          }
-
-          showLogin();
-        }
-
-      }
-    );
-
-
-    /* =========================
-        START APP
-    ========================== */
-
     checkSession();
-
   </script>
-
 </body>
 </html>
