@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>یاری ئۆکەی ئۆنلاین</title>
+  <style>
+    body { background-color: #143610; color: white; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+    .rack-container { max-width: 500px; margin: 20px auto; background: #3d2314; padding: 15px; border-radius: 12px; border: 6px solid #231209; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+    .rack { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; background: #5c381e; padding: 12px; border-radius: 8px; min-height: 100px; align-items: center; }
+    .okey-tile { width: 38px; height: 55px; background: #fff8e7; border-radius: 6px; border: 1px solid #000; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); }
+    .red { color: #d32f2f; }
+    .black { color: #111111; }
+    .blue { color: #1976d2; }
+    .yellow { color: #fbc02d; }
+    button { background: #4caf50; color: white; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+    button:hover { background: #388e3c; }
+  </style>
+</head>
+<body>
+  <h1>🎴 یاری ئۆکەی (Okey)</h1>
+  <p>بەردەکانی تەختەکە بەپێی ڕەنگ و ژمارە ڕێکبخە</p>
+  <div class="rack-container">
+    <h3>تەختەی بەردەکانت</h3>
+    <div class="rack" id="okeyRack"></div>
+    <button onclick="drawOkeyHand()">دابەشکردنەوەی بەردەکان 🔄</button>
+  </div>
+  <script>
+    const colors = ['red', 'black', 'blue', 'yellow'];
+    function drawOkeyHand() {
+      const rack = document.getElementById("okeyRack");
+      rack.innerHTML = "";
+      for (let i = 0; i < 14; i++) {
+        const num = Math.floor(Math.random() * 13) + 1;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const tile = document.createElement("div");
+        tile.className = `okey-tile ${color}`;
+        tile.innerText = num;
+        rack.appendChild(tile);
+      }
+    }
+    drawOkeyHand();
+  </script>
+</body>
+</html>
