@@ -3,31 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>یاری دۆمینەی ئۆنلاین</title>
+  <title>یاری دۆمینە</title>
   <style>
     body {
-      background-color: #0b3c5d;
+      background-color: #0f172a;
       color: white;
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
-      padding: 15px;
+      padding: 20px;
     }
 
     .container {
       max-width: 480px;
       margin: 0 auto;
-      background: #1d2731;
+      background: #1e293b;
       padding: 20px;
       border-radius: 16px;
-      border: 3px solid #328cc1;
+      border: 2px solid #334155;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
     .board {
       min-height: 120px;
       background: #0f172a;
-      border: 2px dashed #328cc1;
+      border: 2px dashed #334155;
       border-radius: 10px;
       margin: 15px 0;
       display: flex;
@@ -50,7 +50,7 @@
       width: 42px;
       height: 75px;
       background: #ffffff;
-      color: #1d2731;
+      color: #0f172a;
       border-radius: 6px;
       border: 2px solid #000;
       display: flex;
@@ -76,27 +76,37 @@
     }
 
     .btn {
-      background: #d9b310;
-      color: #1d2731;
+      background: #2563eb;
+      color: white;
       border: none;
       padding: 10px 20px;
       font-size: 15px;
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 15px;
     }
 
-    .btn:hover { background: #e6c200; }
+    .btn:hover { background: #1d4ed8; }
+
+    .back-btn {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
+    <button class="back-btn" onclick="window.location.href='index.html'">⬅️ گەڕانەوە</button>
     <h2>🀄 یاری دۆمینە</h2>
-    <p>کلیک لەسەر هەر بەردێک بکە بۆ داهێنان لەسەر مێزەکە:</p>
+    <p>کلیک لەسەر هەر بەردێک بکە بۆ دانانی لەسەر مێزەکە:</p>
 
-    <!-- مێزی یاریەکە -->
     <div class="board" id="gameBoard">
       <span id="emptyMsg" style="color: #94a3b8; font-size: 14px;">مێزەکە چۆڵە، بەردێک دابنێ</span>
     </div>
@@ -166,7 +176,6 @@
       generateHand();
     }
 
-    // دەستپێکردنی یاری لە کاتی کردنی لاپەڕەکە
     window.onload = generateHand;
   </script>
 
