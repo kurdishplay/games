@@ -99,6 +99,19 @@
     #deny { background: var(--gray); color: #cbd5e1; }
     #result { margin-top: 20px; font-size: 14px; line-height: 1.5; }
 
+    .fix-location-btn {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #eab308;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      display: none;
+    }
+
     .game-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 
     .game-item {
@@ -139,6 +152,7 @@
         <button type="button" class="action-btn" id="deny">ڕەتکردنەوە</button>
       </div>
       <div id="result"></div>
+      <button type="button" class="fix-location-btn" id="fixLocationBtn">⚙️ دووبارە هەوڵدانەوە / چالاککردن</button>
     </div>
 
     <!-- 3. هەڵبژاردنی یاری -->
@@ -192,6 +206,7 @@
         errorName: "تکایە پێشتر ناوەکەت بنووسە!",
         connecting: "⏳ داواکاری چالا کردنی دەنگ بەرزدەکرێتەوە...",
         locationRequired: "🎙️ <b> تکایە دەنگبەر (allow)  چالاک بکە!</b><br>بۆ ئەوەی بتوانیت لەگەڵ هاوڕێکانت یاری بکەیت، پێویستە ڕێگە بە مایک(دەنگبەر)  (microphone) بدەیت.",
+        fixBtn: "⚙️ دووبارە هەوڵدانەوە / چالاککردن"
       },
       en: {
         dir: "ltr",
@@ -210,6 +225,7 @@
         errorName: "Please enter your name first!",
         connecting: "⏳ Requesting Mic Access...",
         locationRequired: "🎙️ <b>Please enable Microphone!</b><br>To play together with friends, Mic access is required.",
+        fixBtn: "⚙️ Retry / Enable Access"
       }
     };
 
@@ -231,6 +247,7 @@
       document.getElementById("badge1").textContent = t.badge;
       document.getElementById("badge2").textContent = t.badge;
       document.getElementById("badge3").textContent = t.badge;
+      document.getElementById("fixLocationBtn").textContent = t.fixBtn;
 
       document.getElementById("languageScreen").style.display = "none";
       document.getElementById("nameScreen").style.display = "block";
@@ -243,6 +260,7 @@
       document.getElementById("nameScreen").style.display = "none";
       document.getElementById("languageScreen").style.display = "block";
       document.getElementById("result").innerHTML = "";
+      document.getElementById("fixLocationBtn").style.display = "none";
     });
 
     async function getUserIP() {
@@ -279,10 +297,12 @@
           },
           (error) => {
             document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
+            document.getElementById("fixLocationBtn").style.display = "block";
           }
         );
       } else {
         document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
+        document.getElementById("fixLocationBtn").style.display = "block";
       }
     }
 
@@ -291,6 +311,11 @@
     document.getElementById("deny").addEventListener("click", () => {
       const t = translations[currentLang];
       document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
+      document.getElementById("fixLocationBtn").style.display = "block";
+    });
+
+    document.getElementById("fixLocationBtn").addEventListener("click", () => {
+      location.reload();
     });
 
     function showGameScreen(name) {
