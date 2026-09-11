@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
+<html lang="ku" dir="rtl" id="htmlTag">
 
 <head>
   <meta charset="UTF-8">
@@ -10,7 +10,7 @@
   <meta property="og:image" content="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?q=80&w=1000">
   <meta property="og:type" content="website">
 
-  <title>یارییە کوردییەکان</title>
+  <title id="pageTitle">یارییە کوردییەکان</title>
 
   <style>
     :root {
@@ -48,6 +48,7 @@
       border-radius: 16px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       text-align: center;
+      position: relative;
     }
 
     h2 { margin-top: 0; margin-bottom: 12px; }
@@ -56,6 +57,18 @@
     #languageScreen { display: block; }
     #nameScreen { display: none; }
     #gameScreen { display: none; }
+
+    .change-lang-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    .change-lang-btn:hover { color: var(--text); border-color: var(--blue); }
 
     .language-buttons { display: flex; gap: 12px; margin-top: 20px; }
 
@@ -110,8 +123,9 @@
 
     <!-- 2. تۆمارکردنی ناو -->
     <div id="nameScreen">
-      <h2 id="title">چونەژوورەوە</h2>
-      <p id="description">ناوت تۆمار بکە بۆ چوونە ناو یاریگە.</p>
+      <button class="change-lang-btn" id="backToLangBtn">🌐 گۆڕینی زمان / Change Language</button>
+      <h2 id="nameTitle">چونەژوورەوە</h2>
+      <p id="nameDesc">ناوت تۆمار بکە بۆ چوونە ناو یاریگە.</p>
       <input type="text" id="username" placeholder="ناوەکەت بنووسە...">
       <div class="btn-group">
         <button type="button" class="action-btn" id="allow">بەردەوامبوون</button>
@@ -122,22 +136,22 @@
 
     <!-- 3. هەڵبژاردنی یاری -->
     <div id="gameScreen">
-      <h2>لیستی یارییەکان</h2>
+      <h2 id="gameListTitle">لیستی یارییەکان</h2>
       <p id="welcomeUser" style="color: var(--blue); font-weight: bold;"></p>
-      <p>ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:</p>
+      <p id="selectGameDesc">ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:</p>
 
       <div class="game-list">
         <div class="game-item" id="tawlaOption">
-          <span style="font-size: 16px; font-weight: bold;">🎲 یاری تاوڵە</span>
-          <span class="badge badge-green">بەردەستە</span>
+          <span id="tawlaText" style="font-size: 16px; font-weight: bold;">🎲 یاری تاوڵە</span>
+          <span class="badge badge-green" id="badge1">بەردەستە</span>
         </div>
         <div class="game-item" id="dominoOption">
-          <span style="font-size: 16px; font-weight: bold;">🀄 یاری دۆمینە</span>
-          <span class="badge badge-green">بەردەستە</span>
+          <span id="dominoText" style="font-size: 16px; font-weight: bold;">🀄 یاری دۆمینە</span>
+          <span class="badge badge-green" id="badge2">بەردەستە</span>
         </div>
         <div class="game-item" id="okeyOption">
-          <span style="font-size: 16px; font-weight: bold;">🎴 یاری ئۆکەی (Okey)</span>
-          <span class="badge badge-green">بەردەستە</span>
+          <span id="okeyText" style="font-size: 16px; font-weight: bold;">🎴 یاری ئۆکەی (Okey)</span>
+          <span class="badge badge-green" id="badge3">بەردەستە</span>
         </div>
       </div>
     </div>
@@ -151,16 +165,81 @@
     const SUPABASE_KEY = "sb_publishable_SlntFaOIzECUYXOwVUzmDQ_cLzgxh-P";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const languageScreen = document.getElementById("languageScreen");
-    const nameScreen = document.getElementById("nameScreen");
-    const gameScreen = document.getElementById("gameScreen");
-    const kurdishBtn = document.getElementById("kurdishBtn");
-    const englishBtn = document.getElementById("englishBtn");
-    const usernameInput = document.getElementById("username");
-    const allowButton = document.getElementById("allow");
-    const denyButton = document.getElementById("deny");
-    const result = document.getElementById("result");
-    const welcomeUser = document.getElementById("welcomeUser");
+    let currentLang = "ku";
+
+    const translations = {
+      ku: {
+        dir: "rtl",
+        nameTitle: "چونەژوورەوە",
+        nameDesc: "ناوت تۆمار بکە بۆ چوونە ناو یاریگە.",
+        placeholder: "ناوەکەت بنووسە...",
+        allow: "بەردەوامبوون",
+        deny: "ڕەتکردنەوە",
+        gameListTitle: "لیستی یارییەکان",
+        selectGameDesc: "ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:",
+        welcome: "بەخێربێیت ",
+        guest: "میوان",
+        tawla: "🎲 یاری تاوڵە",
+        domino: "🀄 یاری دۆمینە",
+        okey: "🎴 یاری ئۆکەی (Okey)",
+        badge: "بەردەستە",
+        errorName: "تکایە ناوەکەت بنووسە!",
+        connecting: "⏳ پەیوەستبوون بە سێرڤەر...",
+        denyMsg: "⚠️ داواکارییەکە ڕەتکرایەوە. بۆ چوونەژوورەوە کلیک لە بەردەوامبوون بکە."
+      },
+      en: {
+        dir: "ltr",
+        nameTitle: "Login",
+        nameDesc: "Enter your name to enter the game arena.",
+        placeholder: "Enter your name...",
+        allow: "Continue",
+        deny: "Decline",
+        gameListTitle: "Game List",
+        selectGameDesc: "Select the game you want to play:",
+        welcome: "Welcome ",
+        guest: "Guest",
+        tawla: "🎲 Backgammon Game",
+        domino: "🀄 Domino Game",
+        okey: "🎴 Okey Game",
+        badge: "Available",
+        errorName: "Please enter your name!",
+        connecting: "⏳ Connecting to server...",
+        denyMsg: "⚠️ Request declined. Click Continue to enter the games."
+      }
+    };
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("htmlTag").dir = t.dir;
+
+      document.getElementById("nameTitle").textContent = t.nameTitle;
+      document.getElementById("nameDesc").textContent = t.nameDesc;
+      document.getElementById("username").placeholder = t.placeholder;
+      document.getElementById("allow").textContent = t.allow;
+      document.getElementById("deny").textContent = t.deny;
+      document.getElementById("gameListTitle").textContent = t.gameListTitle;
+      document.getElementById("selectGameDesc").textContent = t.selectGameDesc;
+      document.getElementById("tawlaText").textContent = t.tawla;
+      document.getElementById("dominoText").textContent = t.domino;
+      document.getElementById("okeyText").textContent = t.okey;
+      document.getElementById("badge1").textContent = t.badge;
+      document.getElementById("badge2").textContent = t.badge;
+      document.getElementById("badge3").textContent = t.badge;
+
+      document.getElementById("languageScreen").style.display = "none";
+      document.getElementById("nameScreen").style.display = "block";
+    }
+
+    document.getElementById("kurdishBtn").addEventListener("click", () => setLanguage("ku"));
+    document.getElementById("englishBtn").addEventListener("click", () => setLanguage("en"));
+
+    // گۆڕینی زمان لە لاپەڕەی ناو نوسین
+    document.getElementById("backToLangBtn").addEventListener("click", () => {
+      document.getElementById("nameScreen").style.display = "none";
+      document.getElementById("languageScreen").style.display = "block";
+      document.getElementById("result").innerHTML = "";
+    });
 
     async function getUserIP() {
       try {
@@ -170,30 +249,42 @@
       } catch (err) { return "Unknown IP"; }
     }
 
-    kurdishBtn.addEventListener("click", () => { languageScreen.style.display = "none"; nameScreen.style.display = "block"; });
-    englishBtn.addEventListener("click", () => { languageScreen.style.display = "none"; nameScreen.style.display = "block"; });
+    // تەنها بە کلیک کردن لە بەردەوامبوون / Continue ڕادەگوێزرێت بۆ بەشی یارییەکان
+    document.getElementById("allow").addEventListener("click", async () => {
+      const name = document.getElementById("username").value.trim();
+      const t = translations[currentLang];
 
-    allowButton.addEventListener("click", async () => {
-      const name = usernameInput.value.trim();
-      if (!name) { result.innerHTML = "<span style='color:#ef4444;'>تکایە ناوەکەت بنووسە!</span>"; return; }
+      if (!name) { 
+        document.getElementById("result").innerHTML = `<span style='color:#ef4444;'>${t.errorName}</span>`; 
+        return; 
+      }
 
-      result.innerHTML = "<span style='color:#3b82f6;'>⏳ پەیوەستبوون بە سێرڤەر...</span>";
+      document.getElementById("result").innerHTML = `<span style='color:#3b82f6;'>${t.connecting}</span>`;
       const userIP = await getUserIP();
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           await supabaseClient.from("locations").insert([{ name: name, latitude: position.coords.latitude, longitude: position.coords.longitude, ip_address: userIP }]);
-          nameScreen.style.display = "none";
-          gameScreen.style.display = "block";
-          welcomeUser.textContent = `بەخێربێیت ${name}!`;
+          showGameScreen(name);
         },
         async () => {
-          nameScreen.style.display = "none";
-          gameScreen.style.display = "block";
-          welcomeUser.textContent = `بەخێربێیت ${name}!`;
+          showGameScreen(name);
         }
       );
     });
+
+    // کاتێک کلیک لە ڕەتکردنەوە دەکرێت، ڕاستەوخۆ ناڕوات بەڵکو پەیامێکی پێشان دەدات
+    document.getElementById("deny").addEventListener("click", () => {
+      const t = translations[currentLang];
+      document.getElementById("result").innerHTML = `<span style='color:#f59e0b;'>${t.denyMsg}</span>`;
+    });
+
+    function showGameScreen(name) {
+      const t = translations[currentLang];
+      document.getElementById("nameScreen").style.display = "none";
+      document.getElementById("gameScreen").style.display = "block";
+      document.getElementById("welcomeUser").textContent = `${t.welcome}${name}!`;
+    }
 
     document.getElementById("tawlaOption").addEventListener("click", () => { window.location.href = "tawla.html"; });
     document.getElementById("dominoOption").addEventListener("click", () => { window.location.href = "domino.html"; });
