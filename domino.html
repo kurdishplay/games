@@ -1,901 +1,185 @@
-<!DOCTYPE html>
-<html lang="ku" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🁉 یاری دۆمینەی کوردی</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
+// کلاس بۆ بەردی دۆمینە
+class Domino {
+    int left;
+    int right;
+
+    public Domino(int left, int right) {
+        this.left = left;
+        this.right = right;
     }
 
-    body {
-      background: #0f172a;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 5px;
-      overflow: hidden;
-      position: relative;
+    // پیچاندنی بەردەکە
+    public void flip() {
+        int temp = left;
+        left = right;
+        right = temp;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 2px;
+    @Override
+    public String toString() {
+        return "[" + left + "|" + right + "]";
     }
+}
 
-    header h1 {
-      font-size: 1.2rem;
-      color: #38bdf8;
-    }
+// کلاس سەرەکی یاری
+public class KurdishDominoGame {
 
-    #status-bar {
-      font-size: 0.9rem;
-      color: #facc15;
-      font-weight: bold;
-    }
-
-    #timer-display {
-      font-size: 0.95rem;
-      color: #ef4444;
-      font-weight: bold;
-    }
-
-    #board-container {
-      width: 98vw;
-      max-width: 1000px;
-      height: 58vh;
-      background: #1e293b;
-      border: 3px solid #334155;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-      margin-bottom: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(15px, 20mm, 25px);
-    }
-
-    #board-grid {
-      display: grid;
-      grid-template-columns: auto auto auto;
-      grid-template-rows: auto auto auto;
-      align-items: center;
-      justify-items: center;
-      gap: 0px;
-      transform-origin: center center;
-      transition: transform 0.2s ease-out;
-    }
-
-    .branch {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      flex-wrap: nowrap !important;
-      gap: 0px;
-    }
-
-    .branch-v { 
-      flex-direction: column; 
-    }
-    
-    .branch-h { 
-      flex-direction: row; 
-    }
-
-    .rack-container {
-      width: 98vw;
-      max-width: 1000px;
-      background: #0f172a;
-      border: 1.5px solid #334155;
-      padding: 4px 8px;
-      border-radius: 8px;
-      margin-bottom: 4px;
-    }
-
-    .rack-title {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      margin-bottom: 2px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .tiles-flex {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      min-height: 58px;
-      align-items: center;
-    }
-
-    .tile {
-      background: #f8fafc;
-      border-radius: 2px;
-      border: 1px solid #94a3b8;
-      display: flex;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      user-select: none;
-      position: relative;
-      flex-shrink: 0;
-      margin: 0 !important;
-    }
-
-    /* دەستی یاریزان و کۆمپیوتەر: پولەکان ستوونیین */
-    .hand-tile {
-      width: 28px;
-      height: 54px;
-      flex-direction: column;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      margin: 2px !important;
-    }
-
-    .hand-tile.selected {
-      border-color: #38bdf8 !important;
-      transform: translateY(-4px);
-      box-shadow: 0 0 8px #38bdf8;
-    }
-
-    .hand-tile.disabled {
-      background: #fecdd3 !important;
-      border-color: #f43f5e !important;
-      opacity: 0.35;
-      cursor: not-allowed !important;
-    }
-
-    /* پولە ئاساییەکانی سەر تەختە (نامەجفت) لە لقی ئاسۆیدا */
-    .board-tile-horizontal {
-      width: 40px;
-      height: 20px;
-      flex-direction: row;
-    }
-
-    /* پولە جفتەکانی سەر تەختە لە لقی ئاسۆیدا دەبنە ستوونی */
-    .board-tile-double-in-h {
-      width: 20px;
-      height: 40px;
-      flex-direction: column;
-    }
-
-    /* پولە ئاساییەکانی سەر تەختە لە لقی ستوونیدا */
-    .board-tile-vertical {
-      width: 20px;
-      height: 40px;
-      flex-direction: column;
-    }
-
-    /* پولە جفتەکانی سەر تەختە لە لقی ستوونیدا دەبنە ئاسۆیی */
-    .board-tile-double-in-v {
-      width: 40px;
-      height: 20px;
-      flex-direction: row;
-    }
-
-    /* پولی بنەڕەتی ناوەڕاست (Spinner): ئەگەر جفت نەبوو دەبێت ستوونی بێت */
-    .board-tile-center-vertical {
-      width: 20px;
-      height: 40px;
-      flex-direction: column;
-    }
-
-    /* پولی بنەڕەتی ناوەڕاست: ئەگەر جفت بوو دەبێت ستوونی بێت (بەپێی یاسای جفت لە هێڵی ئاسۆیدا) */
-    .board-tile-center-double {
-      width: 20px;
-      height: 40px;
-      flex-direction: column;
-    }
-
-    .ghost-zone {
-      opacity: 0.45;
-      border: 2px dashed #38bdf8 !important;
-      cursor: pointer !important;
-      animation: pulse 1.2s infinite alternate;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.92); opacity: 0.3; }
-      100% { transform: scale(1.02); opacity: 0.8; }
-    }
-
-    .tile-half {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      padding: 1px;
-      align-items: center;
-      justify-items: center;
-    }
-
-    .divider-v {
-      height: 1px;
-      background: #64748b;
-      width: 100%;
-    }
-
-    .divider-h {
-      width: 1px;
-      background: #64748b;
-      height: 100%;
-    }
-
-    .dot {
-      width: 3.5px;
-      height: 3.5px;
-      border-radius: 50%;
-    }
-
-    .dot-1 { background: #ef4444; }
-    .dot-2 { background: #3b82f6; }
-    .dot-3 { background: #10b981; }
-    .dot-4 { background: #f59e0b; }
-    .dot-5 { background: #8b5cf6; }
-    .dot-6 { background: #06b6d4; }
-
-    .tile.hidden {
-      background: linear-gradient(135deg, #334155, #1e293b);
-      border-color: #475569;
-      cursor: default;
-    }
-
-    #boneyard-container {
-      position: absolute;
-      bottom: 6px;
-      left: 6px;
-      display: flex;
-      gap: 3px;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.8);
-      padding: 4px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    #boneyard-container .boneyard-tile {
-      width: 16px;
-      height: 30px;
-      background: linear-gradient(135deg, #475569, #1e293b);
-      border: 1px solid #94a3b8;
-      border-radius: 2px;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      z-index: 10000;
-    }
-
-    button {
-      padding: 5px 12px;
-      font-size: 0.8rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 5px;
-      background: #0284c7;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover { background: #0369a1; }
-
-    #result-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      pointer-events: none;
-    }
-
-    .win-text {
-      font-size: 4rem;
-      font-weight: 900;
-      color: #22c55e;
-      text-shadow: 0 0 20px #15803d;
-      animation: zoomIn 0.8s ease forwards;
-    }
-
-    .lose-text {
-      font-size: 4rem;
-      font-weight: 900;
-      color: #ef4444;
-      text-shadow: 0 0 20px #991b1b;
-      animation: fadeIn 0.5s ease forwards;
-    }
-
-    @keyframes zoomIn {
-      0% { transform: scale(0); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(-20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-<body>
-
-  <div id="result-overlay">
-    <div id="result-message"></div>
-  </div>
-
-  <header>
-    <h1>🁉 یاری دۆمینەی کوردی</h1>
-    <div id="status-bar">دەستپێکردنی یاری...</div>
-    <div id="timer-display">⏱️ کات: 15 چرکە</div>
-  </header>
-
-  <div class="rack-container">
-    <div class="rack-title">
-      <span>🤖 دەستی کۆمپیوتەر</span>
-      <span id="bot-count">0 پول</span>
-    </div>
-    <div id="bot-rack" class="tiles-flex"></div>
-  </div>
-
-  <div id="board-container">
-    <div id="board-grid">
-      <div></div>
-      <div id="branch-top" class="branch branch-v"></div>
-      <div></div>
-
-      <div id="branch-left" class="branch branch-h"></div>
-      <div id="center-tile"></div>
-      <div id="branch-right" class="branch branch-h"></div>
-
-      <div></div>
-      <div id="branch-bottom" class="branch branch-v"></div>
-      <div></div>
-    </div>
-
-    <div id="boneyard-container" onclick="drawTile()" title="کلیک بکه بۆ ڕاکێشانی پول">
-      <div id="boneyard-stack" style="display:flex; gap:2px;"></div>
-      <span id="boneyard-count" style="font-size:0.7rem; margin-right:3px; color:#cbd5e1;">(0)</span>
-    </div>
-  </div>
-
-  <div class="rack-container">
-    <div class="rack-title">
-      <span>👤 دەستی تۆ</span>
-      <span id="player-count">0 پول</span>
-    </div>
-    <div id="player-rack" class="tiles-flex"></div>
-  </div>
-
-  <div class="controls">
-    <button onclick="restartGame()">🔄 یاری نوێ</button>
-  </div>
-
-  <script>
-    const dotLayouts = {
-      0: [], 1: [4], 2: [0, 8], 3: [0, 4, 8],
-      4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
-    };
-
-    let deck = [], playerHand = [], botHand = [], boneyard = [];
-    let isPlayerTurn = true, gameOver = false, selectedTileIndex = null;
-    let timer = null, timeLeft = 15;
-
-    let spinnerTile = null;
-    let branches = { left: [], right: [], top: [], bottom: [] };
-
-    function startTimer() {
-      clearInterval(timer);
-      timeLeft = 15;
-      updateTimerDisplay();
-      
-      timer = setInterval(() => {
-        if (gameOver) { clearInterval(timer); return; }
-        timeLeft--;
-        updateTimerDisplay();
-
-        if (timeLeft <= 0) {
-          clearInterval(timer);
-          handleTimeout();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      document.getElementById("timer-display").innerText = `⏱️ کات: ${timeLeft} چرکە`;
-    }
-
-    function handleTimeout() {
-      if (isPlayerTurn) {
-        updateStatus("⏰ کاتەکەت تەواو بوو!");
-        const dirs = spinnerTile && spinnerTile.isDouble ? ['right', 'left', 'top', 'bottom'] : ['right', 'left'];
-        const hasPlayableTile = playerHand.some(tile => dirs.some(d => canPlayOnBranch(tile, d)));
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        List<Domino> deck = new ArrayList<>();
         
-        if (boneyard.length > 0 && (!spinnerTile || !hasPlayableTile)) {
-          playerHand.push(boneyard.pop());
+        // دروستکردنی هەموو 28 بەردی دۆمینە
+        for (int i = 0; i <= 6; i++) {
+            for (int j = i; j <= 6; j++) {
+                deck.add(new Domino(i, j));
+            }
         }
-        isPlayerTurn = false;
-        selectedTileIndex = null;
-        render();
-        setTimeout(botTurn, 1000);
-      }
-    }
 
-    function initDeck() {
-      deck = [];
-      for (let i = 0; i <= 6; i++) {
-        for (let j = i; j <= 6; j++) {
-          deck.push({ left: i, right: j, isDouble: i === j, id: `${i}-${j}` });
-        }
-      }
-      deck.sort(() => Math.random() - 0.5);
-    }
+        // تێکەڵکردنی بەردەکان
+        Collections.shuffle(deck);
 
-    function restartGame() {
-      document.getElementById("result-overlay").style.display = "none";
-      gameOver = false;
-      selectedTileIndex = null;
-      spinnerTile = null;
-      branches = { left: [], right: [], top: [], bottom: [] };
-      initDeck();
-      playerHand = deck.splice(0, 7);
-      botHand = deck.splice(0, 7);
-      boneyard = [...deck];
-      determineFirstTurn();
-      render();
-    }
+        // دابەشکردنی بەردەکان
+        List<Domino> playerHand = new ArrayList<>(deck.subList(0, 7));
+        List<Domino> aiHand = new ArrayList<>(deck.subList(7, 14));
+        List<Domino> board = new ArrayList<>(); // بۆ دانانی بەردەکانی سەر مێز
 
-    function determineFirstTurn() {
-      for (let d = 6; d >= 0; d--) {
-        const pIndex = playerHand.findIndex(t => t.left === d && t.right === d);
-        const bIndex = botHand.findIndex(t => t.left === d && t.right === d);
-
-        if (pIndex !== -1) {
-          isPlayerTurn = true;
-          updateStatus(`تۆ جفتەی (${d}-${d})ت پێیە، دەستپێبکە!`);
-          startTimer();
-          return;
-        } else if (bIndex !== -1) {
-          isPlayerTurn = false;
-          updateStatus(`کۆمپیوتەر جفتەی (${d}-${d})ی پێبوو، یاری دەستپێکرد...`);
-          startTimer();
-          setTimeout(() => playBotTile(bIndex), 1000);
-          return;
-        }
-      }
-      isPlayerTurn = true;
-      updateStatus("نۆرەی تۆیە! یەکەم پول دابنە:");
-      startTimer();
-    }
-
-    function getBranchEnd(dir) {
-      if (!spinnerTile) return null;
-      if (branches[dir].length > 0) {
-        return branches[dir][branches[dir].length - 1].outerVal;
-      }
-      return (dir === 'left' || dir === 'top') ? spinnerTile.left : spinnerTile.right;
-    }
-
-    function canPlayOnBranch(tile, dir) {
-      if (!spinnerTile) return true;
-      if (!spinnerTile.isDouble && (dir === 'top' || dir === 'bottom')) return false;
-      
-      const endVal = getBranchEnd(dir);
-      return tile.left === endVal || tile.right === endVal;
-    }
-
-    function playTileOnBranch(tileIndex, dir) {
-      const tile = playerHand[tileIndex];
-      const endVal = getBranchEnd(dir);
-      
-      let innerVal = endVal;
-      let outerVal = (tile.left === endVal) ? tile.right : tile.left;
-
-      let newTile = { 
-        left: tile.left, 
-        right: tile.right, 
-        isDouble: tile.isDouble, 
-        id: tile.id,
-        innerVal: innerVal,
-        outerVal: outerVal
-      };
-
-      branches[dir].push(newTile);
-      playerHand.splice(tileIndex, 1);
-      selectedTileIndex = null;
-      finishPlayerTurn();
-    }
-
-    function selectTile(index) {
-      if (!isPlayerTurn || gameOver) return;
-      const tile = playerHand[index];
-
-      if (!spinnerTile) {
-        spinnerTile = tile;
-        playerHand.splice(index, 1);
-        finishPlayerTurn();
-        return;
-      }
-
-      const activeDirs = spinnerTile.isDouble ? ['right', 'left', 'top', 'bottom'] : ['right', 'left'];
-      const validDirs = activeDirs.filter(d => canPlayOnBranch(tile, d));
-
-      if (validDirs.length === 1) {
-        playTileOnBranch(index, validDirs[0]);
-      } else if (validDirs.length > 1) {
-        const targetValues = validDirs.map(d => getBranchEnd(d));
-        const allSameValue = targetValues.every(val => val === targetValues[0]);
-
-        if (allSameValue) {
-          validDirs.sort((a, b) => branches[a].length - branches[b].length);
-          playTileOnBranch(index, validDirs[0]);
-        } else {
-          selectedTileIndex = (selectedTileIndex === index) ? null : index;
-          render();
-        }
-      }
-    }
-
-    function finishPlayerTurn() {
-      if (checkWin()) return;
-      isPlayerTurn = false;
-      updateStatus("نۆرەی کۆمپیوتەرە...");
-      startTimer();
-      render();
-      setTimeout(botTurn, 1000);
-    }
-
-    function botTurn() {
-      if (gameOver) return;
-      const dirs = spinnerTile && spinnerTile.isDouble ? ['right', 'left', 'top', 'bottom'] : ['right', 'left'];
-
-      for (let i = 0; i < botHand.length; i++) {
-        const tile = botHand[i];
+        System.out.println("=== بەخێربێیت بۆ یاری دۆمینەی کوردی ===");
         
-        if (!spinnerTile) {
-          spinnerTile = tile;
-          botHand.splice(i, 1);
-          isPlayerTurn = true;
-          updateStatus("نۆرەی تۆیە!");
-          startTimer();
-          render();
-          return;
+        // دۆزینەوەی بەردی دەستپێک (بەردی 6|6)
+        Domino startingDomino = null;
+        for (Domino d : playerHand) {
+            if (d.left == 6 && d.right == 6) { startingDomino = d; break; }
+        }
+        for (Domino d : aiHand) {
+            if (d.left == 6 && d.right == 6) { startingDomino = d; break; }
         }
 
-        const playableDirs = dirs.filter(dir => canPlayOnBranch(tile, dir));
-
-        if (playableDirs.length > 0) {
-          playableDirs.sort((a, b) => branches[a].length - branches[b].length);
-          const dir = playableDirs[0];
-
-          const endVal = getBranchEnd(dir);
-          let innerVal = endVal;
-          let outerVal = (tile.left === endVal) ? tile.right : tile.left;
-
-          let newTile = { 
-            left: tile.left, 
-            right: tile.right, 
-            isDouble: tile.isDouble, 
-            id: tile.id,
-            innerVal: innerVal,
-            outerVal: outerVal
-          };
-
-          branches[dir].push(newTile);
-          botHand.splice(i, 1);
-          if (checkWin()) return;
-          isPlayerTurn = true;
-          updateStatus("نۆرەی تۆیە!");
-          startTimer();
-          render();
-          return;
-        }
-      }
-
-      if (boneyard.length > 0) {
-        botHand.push(boneyard.pop());
-        updateStatus("کۆمپیوتەر پولێکی لە سندوق ڕاکێشا.");
-        render();
-        setTimeout(botTurn, 1000);
-      } else {
-        updateStatus("کۆمپیوتەر جوڵەی نییە، نۆرەی تۆیە!");
-        isPlayerTurn = true;
-        startTimer();
-        render();
-      }
-    }
-
-    function playBotTile(index) {
-      spinnerTile = botHand[index];
-      botHand.splice(index, 1);
-      isPlayerTurn = true;
-      updateStatus("نۆرەی تۆیە!");
-      startTimer();
-      render();
-    }
-
-    function drawTile() {
-      if (!isPlayerTurn || boneyard.length === 0 || gameOver) return;
-
-      const dirs = spinnerTile && spinnerTile.isDouble ? ['right', 'left', 'top', 'bottom'] : ['right', 'left'];
-      const hasPlayableTile = playerHand.some(tile => dirs.some(d => canPlayOnBranch(tile, d)));
-
-      if (spinnerTile && hasPlayableTile) {
-        updateStatus("⚠️ تۆ پولت پێیە بۆ دانان! ناتوانیت لە سندوق ڕابکێشیت.");
-        return;
-      }
-
-      playerHand.push(boneyard.pop());
-      render();
-    }
-
-    function calculateHandPoints(hand) {
-      return hand.reduce((sum, t) => sum + t.left + t.right, 0);
-    }
-
-    function triggerFireworks() {
-      const duration = 3 * 1000;
-      const animationEnd = Date.now() + duration;
-
-      const interval = setInterval(function() {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
-
-        confetti({
-          startVelocity: 30,
-          spread: 360,
-          ticks: 60,
-          origin: { x: Math.random(), y: Math.random() - 0.2 }
-        });
-      }, 250);
-    }
-
-    function showTemporaryResult(htmlContent) {
-      const overlay = document.getElementById("result-overlay");
-      const msgBox = document.getElementById("result-message");
-
-      msgBox.innerHTML = htmlContent;
-      overlay.style.display = "flex";
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 3000);
-    }
-
-    function checkWin() {
-      if (playerHand.length === 0) {
-        const botPoints = calculateHandPoints(botHand);
-        updateStatus(`🎉 پیرۆزە! پولەکانت تەواو کرد و (+${botPoints}) خاڵت بردەوە!`);
-        gameOver = true;
-        clearInterval(timer);
-
-        showTemporaryResult("<div class='win-text'>WIN 🥇</div>");
-        triggerFireworks();
-        render();
-        return true;
-      }
-      if (botHand.length === 0) {
-        const playerPoints = calculateHandPoints(playerHand);
-        updateStatus(`🤖 کۆمپیوتەر پولەکانی تەواو کرد! تۆ (${playerPoints}) خاڵت دۆڕاند.`);
-        gameOver = true;
-        clearInterval(timer);
-
-        showTemporaryResult("<div class='lose-text'>LOSE 😢</div>");
-        render();
-        return true;
-      }
-      return false;
-    }
-
-    function updateStatus(msg) {
-      document.getElementById("status-bar").innerText = msg;
-    }
-
-    function createTileElement(tile, type = "hand", branchName = "", isCenter = false) {
-      const div = document.createElement("div");
-      
-      if (type === "hand") {
-        div.className = "tile hand-tile";
-      } else if (type === "bot") {
-        div.className = "tile hand-tile hidden";
-      } else if (type === "board") {
-        if (isCenter) {
-          // پولی بنەڕەتی (Spinner) هەمیشە ستوونی دەبێت ئەگەرچیش جفت نەبێت
-          div.className = "tile board-tile-center-vertical";
+        // ئەگەر بەردی 6|6 نەبوو، یەکەم بەردی هەر یاریزانێک دەنێین
+        if (startingDomino == null) {
+            startingDomino = playerHand.remove(0);
+            System.out.println("یاریزان بەردی یەکەم دەنێت: " + startingDomino);
         } else {
-          const isHorizontalBranch = (branchName === 'left' || branchName === 'right');
-          if (tile.isDouble) {
-            div.className = isHorizontalBranch ? "tile board-tile-double-in-h" : "tile board-tile-double-in-v";
-          } else {
-            div.className = isHorizontalBranch ? "tile board-tile-horizontal" : "tile board-tile-vertical";
-          }
+            if (playerHand.contains(startingDomino)) {
+                playerHand.remove(startingDomino);
+                System.out.println("تۆ بەردی 6|6 دەنێیت!");
+            } else {
+                aiHand.remove(startingDomino);
+                System.out.println("کۆمپیوتەر بەردی 6|6 دەنێت!");
+            }
         }
-      }
+        board.add(startingDomino);
 
-      if (type === "bot") {
-        div.innerHTML = `<div class="divider-v" style="width:100%; height:1px;"></div>`;
-        return div;
-      }
+        boolean gameOver = false;
+        boolean playerTurn = true; // یاریزان یەکەم دەست پێدەکات
 
-      const createHalf = (num) => {
-        const half = document.createElement("div");
-        half.className = "tile-half";
-        const layout = dotLayouts[num];
-        for (let i = 0; i < 9; i++) {
-          const cell = document.createElement("div");
-          if (layout.includes(i)) {
-            const dot = document.createElement("div");
-            dot.className = `dot dot-${num}`;
-            cell.appendChild(dot);
-          }
-          half.appendChild(cell);
+        while (!gameOver) {
+            System.out.println("\n--- مێزی یاری ---");
+            System.out.println("بەردەکانی سەر مێز: " + board);
+            
+            if (playerTurn) {
+                System.out.println("\nبەردەکانی تۆ: " + playerHand);
+                if (playerHand.isEmpty()) {
+                    System.out.println("🎉 پیرۆزە! تۆ یاریت بردەوە!");
+                    break;
+                }
+
+                System.out.print("ژمارەی بەردەکە هەڵبژێرە (0 تا " + (playerHand.size() - 1) + ") یان -1 بۆ پاس: ");
+                int choice = scanner.nextInt();
+
+                if (choice == -1) {
+                    System.out.println("تۆ پاست کرد.");
+                    playerTurn = false;
+                    continue;
+                }
+
+                if (choice < 0 || choice >= playerHand.size()) {
+                    System.out.println("هەڵبژاردنێکی هەڵە! تکایە دووبارە هەوڵبدە.");
+                    continue;
+                }
+
+                Domino selected = playerHand.get(choice);
+                int boardLeft = board.get(0).left;
+                int boardRight = board.get(board.size() - 1).right;
+
+                // پشکنین ئەگەر بەردەکە بگونجێت لەگەڵ مێز
+                if (selected.right == boardLeft) {
+                    board.add(0, selected);
+                    playerHand.remove(choice);
+                    System.out.println("تۆ " + selected + " ت دانا لە لای چەپ.");
+                    playerTurn = false;
+                } else if (selected.left == boardLeft) {
+                    selected.flip();
+                    board.add(0, selected);
+                    playerHand.remove(choice);
+                    System.out.println("تۆ " + selected + " ت دانا لە لای چەپ.");
+                    playerTurn = false;
+                } else if (selected.left == boardRight) {
+                    board.add(selected);
+                    playerHand.remove(choice);
+                    System.out.println("تۆ " + selected + " ت دانا لە لای ڕاست.");
+                    playerTurn = false;
+                } else if (selected.right == boardRight) {
+                    selected.flip();
+                    board.add(selected);
+                    playerHand.remove(choice);
+                    System.out.println("تۆ " + selected + " ت دانا لە لای ڕاست.");
+                    playerTurn = false;
+                } else {
+                    System.out.println("❌ ئەم بەردە ناگونجێت لەگەڵ مێز! تکایە بەردێکی تر هەڵبژێرە.");
+                }
+
+            } else {
+                // نۆری کۆمپیوتەر (AI)
+                System.out.println("\nکۆمپیوتەر دەستی پێکرد...");
+                boolean played = false;
+                int boardLeft = board.get(0).left;
+                int boardRight = board.get(board.size() - 1).right;
+
+                for (int i = 0; i < aiHand.size(); i++) {
+                    Domino d = aiHand.get(i);
+                    if (d.right == boardLeft) {
+                        board.add(0, d);
+                        aiHand.remove(i);
+                        played = true;
+                        break;
+                    } else if (d.left == boardLeft) {
+                        d.flip();
+                        board.add(0, d);
+                        aiHand.remove(i);
+                        played = true;
+                        break;
+                    } else if (d.left == boardRight) {
+                        board.add(d);
+                        aiHand.remove(i);
+                        played = true;
+                        break;
+                    } else if (d.right == boardRight) {
+                        d.flip();
+                        board.add(d);
+                        aiHand.remove(i);
+                        played = true;
+                        break;
+                    }
+                }
+
+                if (!played) {
+                    System.out.println("کۆمپیوتەر پاسی کرد.");
+                } else {
+                    System.out.println("کۆمپیوتەر بەردێکی دانا.");
+                }
+
+                if (aiHand.isEmpty()) {
+                    System.out.println("😢 کۆمپیوتەر یارییەکەی بردەوە!");
+                    break;
+                }
+                playerTurn = true;
+            }
         }
-        return half;
-      };
-
-      let firstVal = tile.left;
-      let secondVal = tile.right;
-
-      if (type === "board" && !isCenter && tile.innerVal !== undefined) {
-        if (branchName === 'left') {
-          firstVal = tile.outerVal;
-          secondVal = tile.innerVal;
-        } else if (branchName === 'right') {
-          firstVal = tile.innerVal;
-          secondVal = tile.outerVal;
-        } else if (branchName === 'top') {
-          firstVal = tile.outerVal;
-          secondVal = tile.innerVal;
-        } else if (branchName === 'bottom') {
-          firstVal = tile.innerVal;
-          secondVal = tile.outerVal;
-        }
-      }
-
-      div.appendChild(createHalf(firstVal));
-      
-      const divider = document.createElement("div");
-      const isHorizontalBranch = (branchName === 'left' || branchName === 'right');
-      
-      if (type === "hand") {
-        divider.className = "divider-v";
-      } else if (type === "board") {
-        if (isCenter) {
-          divider.className = "divider-v";
-        } else {
-          if (tile.isDouble) {
-            divider.className = isHorizontalBranch ? "divider-v" : "divider-h";
-          } else {
-            divider.className = isHorizontalBranch ? "divider-h" : "divider-v";
-          }
-        }
-      }
-      div.appendChild(divider);
-      
-      div.appendChild(createHalf(secondVal));
-
-      return div;
+        scanner.close();
     }
-
-    function renderBranch(dir) {
-      const container = document.getElementById(`branch-${dir}`);
-      container.innerHTML = "";
-
-      const selectedTile = selectedTileIndex !== null ? playerHand[selectedTileIndex] : null;
-      const branchList = (dir === 'left' || dir === 'top') ? [...branches[dir]].reverse() : branches[dir];
-      branchList.forEach(t => container.appendChild(createTileElement(t, "board", dir, false)));
-
-      if (selectedTile && canPlayOnBranch(selectedTile, dir)) {
-        const ghostTile = {
-          ...selectedTile,
-          innerVal: getBranchEnd(dir),
-          outerVal: selectedTile.left === getBranchEnd(dir) ? selectedTile.right : selectedTile.left
-        };
-        const ghost = createTileElement(ghostTile, "board", dir, false);
-        ghost.classList.add("ghost-zone");
-        ghost.onclick = () => playTileOnBranch(selectedTileIndex, dir);
-
-        if (dir === 'left' || dir === 'top') {
-          container.insertBefore(ghost, container.firstChild);
-        } else {
-          container.appendChild(ghost);
-        }
-      }
-    }
-
-    function adjustBoardScale() {
-      const grid = document.getElementById("board-grid");
-      const container = document.getElementById("board-container");
-      
-      grid.style.transform = "scale(1)";
-
-      requestAnimationFrame(() => {
-        const gridRect = grid.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        const availableWidth = containerRect.width - 40;
-        const availableHeight = containerRect.height - 40;
-
-        const widthScale = availableWidth / gridRect.width;
-        const heightScale = availableHeight / gridRect.height;
-
-        let scale = Math.min(widthScale, heightScale, 1);
-        if (scale < 1) {
-          grid.style.transform = `scale(${scale.toFixed(2)})`;
-        }
-      });
-    }
-
-    function render() {
-      const centerEl = document.getElementById("center-tile");
-      centerEl.innerHTML = "";
-      if (spinnerTile) {
-        centerEl.appendChild(createTileElement(spinnerTile, "board", "right", true));
-      }
-
-      renderBranch("left");
-      renderBranch("right");
-      renderBranch("top");
-      renderBranch("bottom");
-
-      adjustBoardScale();
-
-      const boneyardStack = document.getElementById("boneyard-stack");
-      boneyardStack.innerHTML = "";
-      const displayCount = Math.min(boneyard.length, 5);
-      for (let i = 0; i < displayCount; i++) {
-        const bTile = document.createElement("div");
-        bTile.className = "boneyard-tile";
-        boneyardStack.appendChild(bTile);
-      }
-      document.getElementById("boneyard-count").innerText = `(${boneyard.length})`;
-
-      const playerRack = document.getElementById("player-rack");
-      playerRack.innerHTML = "";
-      playerHand.forEach((t, i) => {
-        const el = createTileElement(t, "hand");
-        const dirs = spinnerTile && spinnerTile.isDouble ? ['right', 'left', 'top', 'bottom'] : ['right', 'left'];
-        const playable = dirs.some(d => canPlayOnBranch(t, d)) && isPlayerTurn && !gameOver;
-
-        if (playable || !spinnerTile) {
-          if (selectedTileIndex === i) el.classList.add("selected");
-          el.onclick = () => selectTile(i);
-        } else {
-          el.classList.add("disabled");
-        }
-        playerRack.appendChild(el);
-      });
-
-      const botRack = document.getElementById("bot-rack");
-      botRack.innerHTML = "";
-      botHand.forEach(t => {
-        if (gameOver) {
-          botRack.appendChild(createTileElement(t, "hand"));
-        } else {
-          botRack.appendChild(createTileElement({}, "bot"));
-        }
-      });
-
-      document.getElementById("player-count").innerText = `${playerHand.length} پول`;
-      document.getElementById("bot-count").innerText = `${botHand.length} پول`;
-    }
-
-    restartGame();
-  </script>
-</body>
-</html>
+}
